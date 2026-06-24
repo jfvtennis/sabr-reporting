@@ -65,7 +65,7 @@
   .card-body{padding:0 16px 14px 46px;display:none;}
   .task-card.expanded .card-body{display:block;}
   .card-description{font-size:13px;color:var(--mid);line-height:1.5;margin-bottom:10px;}
-  .toggle-btn{font-size:11px;color:var(--blue);cursor:pointer;background:none;border:none;padding:0;margin-left:4px;}
+  .toggle-btn{font-size:11px;color:var(--blue);cursor:pointer;background:none;border:none;padding:4px 0 0;margin-top:4px;display:block;text-align:left;}
   .toggle-btn:hover{text-decoration:underline;}
   .notes-label{font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
   .notes-area{width:100%;border:1px solid var(--border);border-radius:4px;padding:8px 10px;font-size:13px;font-family:inherit;color:var(--dark);resize:vertical;min-height:70px;}
@@ -90,11 +90,11 @@
       <div class="person">Cristina Thompson</div>
       <div class="role">VP</div>
     </div>
-    <div class="last-sync">Last synced: 2026-06-24 09:49</div>
+    <div class="last-sync">Last synced: 2026-06-24 10:11</div>
   </div>
 </div>
 <div class="readonly-note" id="readonlyNote">
-  📖 Read-only view — tasks reflect the last refresh on 2026-06-24 09:49.
+  📖 Read-only view — tasks reflect the last refresh on 2026-06-24 10:11.
   To mark tasks complete or add notes, open <a href="http://localhost:8765/dashboard/cristina_thompson" target="_blank">the local dashboard</a> (requires the server running on your machine).
 </div>
 <div class="stats-bar">
@@ -240,9 +240,7 @@ function render(){
                  onchange="toggleComplete('${t.id}',this.checked)">
         </div>
         <div class="card-title-block">
-          <div class="card-title">${escHtml(t.task_name)}
-            <button class="toggle-btn" onclick="toggleExpand('card_${safeId}')" title="Show details">▾ Details</button>
-          </div>
+          <div class="card-title">${escHtml(t.task_name)}</div>
           <div class="card-meta">
             <span class="chip chip-ws">${escHtml(t.ws_num)} · ${escHtml(t.ws_name)}</span>
             <span class="chip chip-type">${typeLabel}</span>
@@ -251,6 +249,7 @@ function render(){
             ${t.priority?priorityChip(t.priority):""}
             ${t.jira?`<span class="chip" style="background:#E8F0FE;color:#1F6FBD">${escHtml(t.jira)}</span>`:""}
           </div>
+          <button class="toggle-btn" onclick="toggleExpand('card_${safeId}')" title="Show details">&#9662; Details</button>
         </div>
       </div>
       <div class="card-body">
