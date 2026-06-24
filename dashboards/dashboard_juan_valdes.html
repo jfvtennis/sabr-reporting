@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SABR · Juan Valdes — Task Dashboard</title>
+<style>
+  :root {
+    --green:#8ED973;--green-dk:#4EA72E;--dark:#1A1A1A;--mid:#555;--light:#888;
+    --border:#E0E0E0;--bg:#F5F5F5;--card:#FFFFFF;--done-bg:#F0FAF0;
+    --red:#C0392B;--amber:#B07D00;--blue:#1F6FBD;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--dark);}
+  .header{background:var(--dark);color:#fff;padding:0;}
+  .header-top{background:var(--green);padding:10px 24px;display:flex;align-items:center;gap:12px;}
+  .header-top h1{font-size:18px;font-weight:700;color:var(--dark);}
+  .header-top .subtitle{font-size:12px;color:#333;}
+  .header-meta{padding:12px 24px;display:flex;gap:24px;align-items:center;flex-wrap:wrap;}
+  .header-meta .person{font-size:20px;font-weight:700;color:#fff;}
+  .header-meta .role{font-size:12px;color:#aaa;}
+  .header-meta .last-sync{font-size:11px;color:#888;margin-left:auto;}
+  .stats-bar{display:flex;gap:16px;padding:16px 24px;background:var(--card);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .stat{text-align:center;min-width:80px;}
+  .stat .num{font-size:28px;font-weight:700;line-height:1;}
+  .stat .lbl{font-size:11px;color:var(--light);text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
+  .stat.complete .num{color:var(--green-dk);}
+  .stat.overdue  .num{color:var(--red);}
+  .stat.outstanding .num{color:var(--amber);}
+  .progress-bar{flex:1;min-width:200px;display:flex;flex-direction:column;justify-content:center;padding:0 8px;}
+  .progress-track{background:#E0E0E0;border-radius:4px;height:10px;overflow:hidden;margin-top:6px;}
+  .progress-fill{background:var(--green);height:100%;border-radius:4px;}
+  .progress-label{font-size:12px;color:var(--mid);}
+  .toolbar{display:flex;gap:10px;padding:12px 24px;background:var(--bg);border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;}
+  .toolbar select,.toolbar input{padding:6px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:#fff;}
+  .toolbar input{min-width:200px;}
+  .toolbar label{font-size:12px;color:var(--mid);display:flex;align-items:center;gap:4px;}
+  .toolbar .spacer{flex:1;}
+  .task-list{padding:16px 24px;display:flex;flex-direction:column;gap:12px;}
+  .task-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:box-shadow .15s;}
+  .task-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);}
+  .task-card.done{background:var(--done-bg);opacity:.75;}
+  .task-card.overdue{border-left:3px solid var(--red);}
+  .card-header{display:flex;align-items:flex-start;gap:12px;padding:14px 16px 10px;}
+  .checkbox-wrap{padding-top:2px;flex-shrink:0;}
+  .checkbox-wrap input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:var(--green-dk);}
+  .card-title-block{flex:1;}
+  .card-title{font-size:14px;font-weight:600;color:var(--dark);line-height:1.3;}
+  .task-card.done .card-title{text-decoration:line-through;color:var(--light);}
+  .card-meta{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;align-items:center;}
+  .chip{display:inline-block;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;white-space:nowrap;}
+  .chip-ws{background:#EBEBEB;color:#555;}
+  .chip-type{background:#E8F0FE;color:#1F6FBD;}
+  .chip-status-not-started{background:#EBEBEB;color:#555;}
+  .chip-status-in-progress{background:#E8F0FE;color:#1F6FBD;}
+  .chip-status-blocked{background:#FEECEB;color:var(--red);}
+  .chip-status-complete{background:#E8F8E8;color:var(--green-dk);}
+  .chip-status-open{background:#FFF8E1;color:var(--amber);}
+  .chip-due{background:#FFF8E1;color:var(--amber);}
+  .chip-due.overdue{background:#FEECEB;color:var(--red);}
+  .chip-due.ok{background:#E8F8E8;color:var(--green-dk);}
+  .chip-priority-high{background:#FEECEB;color:var(--red);}
+  .chip-priority-medium{background:#FFF8E1;color:var(--amber);}
+  .chip-priority-low{background:#EBEBEB;color:#555;}
+  .card-body{padding:0 16px 14px 46px;display:none;}
+  .task-card.expanded .card-body{display:block;}
+  .card-description{font-size:13px;color:var(--mid);line-height:1.5;margin-bottom:10px;}
+  .toggle-btn{font-size:11px;color:var(--blue);cursor:pointer;background:none;border:none;padding:4px 0 0;margin-top:4px;display:block;text-align:left;}
+  .toggle-btn:hover{text-decoration:underline;}
+  .notes-label{font-size:11px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+  .notes-area{width:100%;border:1px solid var(--border);border-radius:4px;padding:8px 10px;font-size:13px;font-family:inherit;color:var(--dark);resize:vertical;min-height:70px;}
+  .notes-area:focus{outline:none;border-color:var(--green);}
+  .save-btn{margin-top:8px;background:var(--green);border:none;border-radius:4px;padding:6px 16px;font-size:12px;font-weight:700;color:var(--dark);cursor:pointer;}
+  .save-btn:hover{background:var(--green-dk);color:#fff;}
+  .save-confirm{font-size:11px;color:var(--green-dk);margin-left:8px;opacity:0;transition:opacity .3s;}
+  .save-confirm.show{opacity:1;}
+  .status-row{display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+  .status-select{padding:5px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;}
+  .completed-stamp{font-size:11px;color:var(--green-dk);font-style:italic;margin-top:6px;}
+  .empty{text-align:center;padding:60px 24px;color:var(--light);font-size:15px;}
+  .readonly-note{background:#FFF8E1;border:1px solid #F0D060;border-radius:6px;padding:8px 16px;font-size:12px;color:#7A5800;margin:8px 24px 0;}
+  @media(max-width:600px){.stats-bar{gap:8px;padding:12px 16px;}.task-list{padding:12px 16px;}.toolbar{padding:8px 16px;}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-top"><h1>🎾 Project SABR</h1><span class="subtitle">Task Dashboard</span></div>
+  <div class="header-meta">
+    <div>
+      <div class="person">Juan Valdes</div>
+      <div class="role">TPM</div>
+    </div>
+    <div class="last-sync">Last synced: 2026-06-24 10:58</div>
+  </div>
+</div>
+<div class="readonly-note" id="readonlyNote">
+  📖 Read-only view — tasks reflect the last refresh on 2026-06-24 10:58.
+  To mark tasks complete or add notes, open <a href="http://localhost:8765/dashboard/juan_valdes" target="_blank">the local dashboard</a> (requires the server running on your machine).
+</div>
+<div class="stats-bar">
+  <div class="stat"><div class="num" id="statTotal">—</div><div class="lbl">Total</div></div>
+  <div class="stat complete"><div class="num" id="statComplete">—</div><div class="lbl">Complete</div></div>
+  <div class="stat outstanding"><div class="num" id="statOutstanding">—</div><div class="lbl">Outstanding</div></div>
+  <div class="stat overdue"><div class="num" id="statOverdue">—</div><div class="lbl">Overdue</div></div>
+  <div class="progress-bar">
+    <div class="progress-label">Completion — <span id="statPct">0</span>%</div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+</div>
+<div class="toolbar">
+  <input type="text" id="searchBox" placeholder="🔍  Search tasks…" oninput="render()">
+  <select id="filterStatus" onchange="render()">
+    <option value="">All Statuses</option>
+    <option value="Not Started">Not Started</option>
+    <option value="In Progress">In Progress</option>
+    <option value="Blocked">Blocked</option>
+    <option value="Complete">Complete</option>
+    <option value="Open">Open</option>
+  </select>
+  <select id="filterWS" onchange="render()"><option value="">All Workstreams</option></select>
+  <select id="sortBy" onchange="render()">
+    <option value="due">Sort: Due Date</option>
+    <option value="status">Sort: Status</option>
+    <option value="priority">Sort: Priority</option>
+    <option value="ws">Sort: Workstream</option>
+  </select>
+  <span class="spacer"></span>
+  <label><input type="checkbox" id="hideComplete" onchange="render()"> Hide completed</label>
+</div>
+<div class="task-list" id="taskList"></div>
+<script>
+const TASKS_DATA = [{"id": "CC::task::", "type": "task", "ws_name": "Change Control", "ws_num": "WS02", "ws_role": "Owner", "task_name": "", "description": "", "owner": "PMO Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CC-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "CC::task::", "type": "task", "ws_name": "Change Control", "ws_num": "WS02", "ws_role": "Owner", "task_name": "", "description": "", "owner": "PMO Analyst", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CC-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "CC::task::", "type": "task", "ws_name": "Change Control", "ws_num": "WS02", "ws_role": "Owner", "task_name": "", "description": "", "owner": "PMO Analyst", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CC-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "CC::task::", "type": "task", "ws_name": "Change Control", "ws_num": "WS02", "ws_role": "Owner", "task_name": "", "description": "", "owner": "PMO Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CC-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "CC::task::", "type": "task", "ws_name": "Change Control", "ws_num": "WS02", "ws_role": "Owner", "task_name": "", "description": "", "owner": "PMO Lead", "status": "Not Started", "due_date": "", "priority": "Medium", "jira": "TC-CC-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "BAI::task::", "type": "task", "ws_name": "Backend Architecture & Integration", "ws_num": "WS04", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Principal Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-BAI-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "BAI::task::", "type": "task", "ws_name": "Backend Architecture & Integration", "ws_num": "WS04", "ws_role": "TPM", "task_name": "", "description": "", "owner": "API Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-BAI-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "BAI::task::", "type": "task", "ws_name": "Backend Architecture & Integration", "ws_num": "WS04", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Integration Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-BAI-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "BAI::task::", "type": "task", "ws_name": "Backend Architecture & Integration", "ws_num": "WS04", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Data Architect", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-BAI-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "BAI::task::", "type": "task", "ws_name": "Backend Architecture & Integration", "ws_num": "WS04", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Infra Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-BAI-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "BAI::task::", "type": "task", "ws_name": "Backend Architecture & Integration", "ws_num": "WS04", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Security Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-BAI-6", "notes": "", "completed": false, "completed_at": ""}, {"id": "BAI::task::", "type": "task", "ws_name": "Backend Architecture & Integration", "ws_num": "WS04", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Principal Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-BAI-7", "notes": "", "completed": false, "completed_at": ""}, {"id": "IAM::task::", "type": "task", "ws_name": "Identity & Access Management", "ws_num": "WS05", "ws_role": "TPM", "task_name": "", "description": "", "owner": "IAM Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-IAM-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "IAM::task::", "type": "task", "ws_name": "Identity & Access Management", "ws_num": "WS05", "ws_role": "TPM", "task_name": "", "description": "", "owner": "IAM Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-IAM-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "IAM::task::", "type": "task", "ws_name": "Identity & Access Management", "ws_num": "WS05", "ws_role": "TPM", "task_name": "", "description": "", "owner": "IAM Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-IAM-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "IAM::task::", "type": "task", "ws_name": "Identity & Access Management", "ws_num": "WS05", "ws_role": "TPM", "task_name": "", "description": "", "owner": "IAM Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-IAM-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "IAM::task::", "type": "task", "ws_name": "Identity & Access Management", "ws_num": "WS05", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Backend Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-IAM-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "IAM::task::", "type": "task", "ws_name": "Identity & Access Management", "ws_num": "WS05", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Security Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-IAM-6", "notes": "", "completed": false, "completed_at": ""}, {"id": "ANA::task::", "type": "task", "ws_name": "Analytics & Measurement", "ws_num": "WS06", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Analytics Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-ANA-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "ANA::task::", "type": "task", "ws_name": "Analytics & Measurement", "ws_num": "WS06", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Analytics Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-ANA-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "ANA::task::", "type": "task", "ws_name": "Analytics & Measurement", "ws_num": "WS06", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Product Analytics", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-ANA-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "ANA::task::", "type": "task", "ws_name": "Analytics & Measurement", "ws_num": "WS06", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Analytics Lead", "status": "Not Started", "due_date": "", "priority": "Medium", "jira": "TC-ANA-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "ANA::task::", "type": "task", "ws_name": "Analytics & Measurement", "ws_num": "WS06", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Product Analytics", "status": "Not Started", "due_date": "", "priority": "Medium", "jira": "TC-ANA-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "ANA::task::", "type": "task", "ws_name": "Analytics & Measurement", "ws_num": "WS06", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Legal/Analytics", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-ANA-6", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::task::", "type": "task", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "", "description": "", "owner": "MVPD Lead", "status": "In Progress", "due_date": "", "priority": "High", "jira": "TC-MVPD-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::task::", "type": "task", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "", "description": "", "owner": "MVPD Lead", "status": "In Progress", "due_date": "", "priority": "High", "jira": "TC-MVPD-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::task::", "type": "task", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "", "description": "", "owner": "MVPD Lead", "status": "In Progress", "due_date": "", "priority": "High", "jira": "TC-MVPD-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::task::", "type": "task", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Backend Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-MVPD-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::task::", "type": "task", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Backend Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-MVPD-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::task::", "type": "task", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "", "description": "", "owner": "QA Team", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-MVPD-6", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::action::4", "type": "action", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "Provide Adobe Pass portal access to team", "description": "", "owner": "Ari Brock", "status": "Open", "due_date": "6/23", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::action::5", "type": "action", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "Define and document promoted tier provider list (initial 6 logos)", "description": "", "owner": "Ari Brock", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::action::6", "type": "action", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "Build provider whitelist/blacklist logic for proxy service filtering", "description": "", "owner": "Engineering Team", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::action::7", "type": "action", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "Design flexible entitlement configuration system per provider", "description": "", "owner": "Aditya / Engineering Team", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::action::8", "type": "action", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "Configure error messaging for non-authorized Tennis Channel packages", "description": "", "owner": "Engineering Team", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::action::9", "type": "action", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "Create new software statement and registered application for Tennis Channel MVPD implementation", "description": "", "owner": "Eric (Adobe)", "status": "Open", "due_date": "6/30", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::action::10", "type": "action", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "Request and collect all new domains (backend and frontend) from Tennis Channel team", "description": "", "owner": "TC Engineering", "status": "Open", "due_date": "6/30", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::action::11", "type": "action", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "Prepare and deliver Postman collection for API testing and POC development", "description": "", "owner": "Eric (Adobe)", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::action::12", "type": "action", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "Schedule consultation meeting with Adobe Product Team and Peter Fong to discuss improvements and best implementation approach", "description": "", "owner": "Eric (Adobe)", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::action::13", "type": "action", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "Clarify D2C implementation requirements and cable provider provisioning strategy (Spectrum/Charter)", "description": "", "owner": "Tennis Channel / Eric (Adobe)", "status": "Open", "due_date": "6/30", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "MVPD::action::14", "type": "action", "ws_name": "MVPD / TV Everywhere", "ws_num": "WS07", "ws_role": "TPM", "task_name": "Review media token validation approach for Go backend implementation", "description": "", "owner": "Pavan (Adobe Senior Engineer) / Aaron and Bobo (Tennis Channel)", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "LIVEOPS::task::", "type": "task", "ws_name": "Live Operations", "ws_num": "WS08", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Live Ops Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-LIVEOPS-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "LIVEOPS::task::", "type": "task", "ws_name": "Live Operations", "ws_num": "WS08", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Live Ops Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-LIVEOPS-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "LIVEOPS::task::", "type": "task", "ws_name": "Live Operations", "ws_num": "WS08", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Live Ops Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-LIVEOPS-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "LIVEOPS::task::", "type": "task", "ws_name": "Live Operations", "ws_num": "WS08", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Ops Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-LIVEOPS-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "LIVEOPS::task::", "type": "task", "ws_name": "Live Operations", "ws_num": "WS08", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Live Ops Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-LIVEOPS-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "LIVEOPS::task::", "type": "task", "ws_name": "Live Operations", "ws_num": "WS08", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Content Ops", "status": "Not Started", "due_date": "", "priority": "Medium", "jira": "TC-LIVEOPS-6", "notes": "", "completed": false, "completed_at": ""}, {"id": "LIVEOPS::task::", "type": "task", "ws_name": "Live Operations", "ws_num": "WS08", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Live Ops Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-LIVEOPS-7", "notes": "", "completed": false, "completed_at": ""}, {"id": "CLR::task::", "type": "task", "ws_name": "Cleeng / Recurly", "ws_num": "WS09", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Product Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CLR-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "CLR::task::", "type": "task", "ws_name": "Cleeng / Recurly", "ws_num": "WS09", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Product + Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CLR-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "CLR::task::", "type": "task", "ws_name": "Cleeng / Recurly", "ws_num": "WS09", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Product Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CLR-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "CLR::task::", "type": "task", "ws_name": "Cleeng / Recurly", "ws_num": "WS09", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Integration Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CLR-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "CLR::task::", "type": "task", "ws_name": "Cleeng / Recurly", "ws_num": "WS09", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Backend Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CLR-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "CLR::task::", "type": "task", "ws_name": "Cleeng / Recurly", "ws_num": "WS09", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Finance/Analytics", "status": "Not Started", "due_date": "", "priority": "Medium", "jira": "TC-CLR-6", "notes": "", "completed": false, "completed_at": ""}, {"id": "CLR::task::", "type": "task", "ws_name": "Cleeng / Recurly", "ws_num": "WS09", "ws_role": "TPM", "task_name": "", "description": "", "owner": "QA Team", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CLR-7", "notes": "", "completed": false, "completed_at": ""}, {"id": "CLR::action::4", "type": "action", "ws_name": "Cleeng / Recurly", "ws_num": "WS09", "ws_role": "TPM", "task_name": "Complete comprehensive subscription flow documentation including screenshots, wireframes, edge cases, and error states", "description": "", "owner": "Niquita", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "CLR::action::5", "type": "action", "ws_name": "Cleeng / Recurly", "ws_num": "WS09", "ws_role": "TPM", "task_name": "Create prioritized feature list identifying MVP requirements vs. post-launch features for December 1st launch", "description": "", "owner": "Aditya Pande", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "CLR::action::6", "type": "action", "ws_name": "Cleeng / Recurly", "ws_num": "WS09", "ws_role": "TPM", "task_name": "Meet with Niquita to associate copy, error states, and create individual user stories from flows", "description": "", "owner": "Product Owner (TCCA-2nd Flr B)", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "CLR::action::7", "type": "action", "ws_name": "Cleeng / Recurly", "ws_num": "WS09", "ws_role": "TPM", "task_name": "Share subscription strategy and Cleeng hosted widgets document link with team", "description": "", "owner": "Product Owner (TCCA-2nd Flr B)", "status": "Open", "due_date": "06-22", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "PLAYER::task::", "type": "task", "ws_name": "Player Vendor Analysis", "ws_num": "WS10", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Product Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-PLAYER-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "PLAYER::task::", "type": "task", "ws_name": "Player Vendor Analysis", "ws_num": "WS10", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Eng Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-PLAYER-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "PLAYER::task::", "type": "task", "ws_name": "Player Vendor Analysis", "ws_num": "WS10", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Eng Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-PLAYER-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "PLAYER::task::", "type": "task", "ws_name": "Player Vendor Analysis", "ws_num": "WS10", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Frontend Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-PLAYER-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "PLAYER::task::", "type": "task", "ws_name": "Player Vendor Analysis", "ws_num": "WS10", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Frontend Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-PLAYER-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "PLAYER::task::", "type": "task", "ws_name": "Player Vendor Analysis", "ws_num": "WS10", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Mobile Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-PLAYER-6", "notes": "", "completed": false, "completed_at": ""}, {"id": "PLAYER::task::", "type": "task", "ws_name": "Player Vendor Analysis", "ws_num": "WS10", "ws_role": "TPM", "task_name": "", "description": "", "owner": "CTV Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-PLAYER-7", "notes": "", "completed": false, "completed_at": ""}, {"id": "PLAYER::task::", "type": "task", "ws_name": "Player Vendor Analysis", "ws_num": "WS10", "ws_role": "TPM", "task_name": "", "description": "", "owner": "QA Team", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-PLAYER-8", "notes": "", "completed": false, "completed_at": ""}, {"id": "ENG::task::", "type": "task", "ws_name": "Analytics & Engagement Tooling", "ws_num": "WS11", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Analytics Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-ENG-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "ENG::task::", "type": "task", "ws_name": "Analytics & Engagement Tooling", "ws_num": "WS11", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Product Analytics", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-ENG-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "ENG::task::", "type": "task", "ws_name": "Analytics & Engagement Tooling", "ws_num": "WS11", "ws_role": "TPM", "task_name": "", "description": "", "owner": "CRM Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-ENG-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "ENG::task::", "type": "task", "ws_name": "Analytics & Engagement Tooling", "ws_num": "WS11", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Data Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-ENG-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "ENG::task::", "type": "task", "ws_name": "Analytics & Engagement Tooling", "ws_num": "WS11", "ws_role": "TPM", "task_name": "", "description": "", "owner": "BI Analyst", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-ENG-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "ENG::task::", "type": "task", "ws_name": "Analytics & Engagement Tooling", "ws_num": "WS11", "ws_role": "TPM", "task_name": "", "description": "", "owner": "BI Analyst", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-ENG-6", "notes": "", "completed": false, "completed_at": ""}, {"id": "ENG::task::", "type": "task", "ws_name": "Analytics & Engagement Tooling", "ws_num": "WS11", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Mobile Eng", "status": "Not Started", "due_date": "", "priority": "Medium", "jira": "TC-ENG-7", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::task::", "type": "task", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Streaming Arch", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-SIR-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::task::", "type": "task", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Infra Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-SIR-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::task::", "type": "task", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Streaming Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-SIR-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::task::", "type": "task", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Streaming Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-SIR-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::task::", "type": "task", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Streaming Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-SIR-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::task::", "type": "task", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Streaming Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-SIR-6", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::task::", "type": "task", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Infra Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-SIR-7", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::action::4", "type": "action", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "Confirm feasibility of extending tc.stream.schedule.ack.v1 with feed_schedule object containing last_match_id and last_match_end_utc per feed", "description": "", "owner": "TC", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::action::5", "type": "action", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "Prepare SOW amendment for manifest proxy custom engineering (Lambda@Edge/CloudFront Functions manifest manipulation)", "description": "", "owner": "Amagi", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::action::6", "type": "action", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "Define and document downstream behavior of is_canceled: true flag in VOD generation pipeline", "description": "", "owner": "Amagi", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::action::7", "type": "action", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "Define retry timeout and max-retry count for amagi.tc.stream.schedule.v1 delivery failures", "description": "", "owner": "Amagi", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::action::8", "type": "action", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "Provide SNS topic ARNs (TC → Amagi and Amagi → TC) to unblock TC engineering configuration", "description": "", "owner": "Amagi", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::action::9", "type": "action", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "Define and agree on VOD manifest expires_at window and TC SLA for publishing edited VOD", "description": "", "owner": "Joint (TC + Amagi)", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::action::10", "type": "action", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "Clarify feed scope in amagi.tc.stream.schedule.v1: all 29 feeds daily or only feeds with matches", "description": "", "owner": "Amagi", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::action::11", "type": "action", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "Define expected player behavior at match boundaries before manifest proxy implementation", "description": "", "owner": "Joint (TC + Amagi)", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::action::12", "type": "action", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "Agree on mid-day schedule update mechanism (resend schedule message vs. new tc.stream.day.update.v1 event)", "description": "", "owner": "Joint (TC + Amagi)", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "SIR::action::13", "type": "action", "ws_name": "Streaming Integration Requirements", "ws_num": "WS12", "ws_role": "TPM", "task_name": "Determine if explicit VOD generation immediate-trigger signal is needed or fast republish is sufficient for time-sensitive cancellations", "description": "", "owner": "Joint (TC + Amagi)", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}, {"id": "EPG::task::", "type": "task", "ws_name": "EPG Architecture & Decisions", "ws_num": "WS13", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Product Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-EPG-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "EPG::task::", "type": "task", "ws_name": "EPG Architecture & Decisions", "ws_num": "WS13", "ws_role": "TPM", "task_name": "", "description": "", "owner": "EPG Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-EPG-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "EPG::task::", "type": "task", "ws_name": "EPG Architecture & Decisions", "ws_num": "WS13", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Data Architect", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-EPG-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "EPG::task::", "type": "task", "ws_name": "EPG Architecture & Decisions", "ws_num": "WS13", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Backend Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-EPG-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "EPG::task::", "type": "task", "ws_name": "EPG Architecture & Decisions", "ws_num": "WS13", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Frontend Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-EPG-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "EPG::task::", "type": "task", "ws_name": "EPG Architecture & Decisions", "ws_num": "WS13", "ws_role": "TPM", "task_name": "", "description": "", "owner": "QA Team", "status": "Not Started", "due_date": "", "priority": "Medium", "jira": "TC-EPG-6", "notes": "", "completed": false, "completed_at": ""}, {"id": "QA::task::", "type": "task", "ws_name": "QA / Testing & Launch Readiness", "ws_num": "WS16", "ws_role": "TPM", "task_name": "", "description": "", "owner": "QA Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-QA-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "QA::task::", "type": "task", "ws_name": "QA / Testing & Launch Readiness", "ws_num": "WS16", "ws_role": "TPM", "task_name": "", "description": "", "owner": "QA Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-QA-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "QA::task::", "type": "task", "ws_name": "QA / Testing & Launch Readiness", "ws_num": "WS16", "ws_role": "TPM", "task_name": "", "description": "", "owner": "QA Engineers", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-QA-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "QA::task::", "type": "task", "ws_name": "QA / Testing & Launch Readiness", "ws_num": "WS16", "ws_role": "TPM", "task_name": "", "description": "", "owner": "QA Engineers", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-QA-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "QA::task::", "type": "task", "ws_name": "QA / Testing & Launch Readiness", "ws_num": "WS16", "ws_role": "TPM", "task_name": "", "description": "", "owner": "QA Team", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-QA-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "QA::task::", "type": "task", "ws_name": "QA / Testing & Launch Readiness", "ws_num": "WS16", "ws_role": "TPM", "task_name": "", "description": "", "owner": "SDET", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-QA-6", "notes": "", "completed": false, "completed_at": ""}, {"id": "QA::task::", "type": "task", "ws_name": "QA / Testing & Launch Readiness", "ws_num": "WS16", "ws_role": "TPM", "task_name": "", "description": "", "owner": "QA Team", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-QA-7", "notes": "", "completed": false, "completed_at": ""}, {"id": "QA::task::", "type": "task", "ws_name": "QA / Testing & Launch Readiness", "ws_num": "WS16", "ws_role": "TPM", "task_name": "", "description": "", "owner": "QA Lead", "status": "Not Started", "due_date": "", "priority": "Medium", "jira": "TC-QA-8", "notes": "", "completed": false, "completed_at": ""}, {"id": "QA::task::", "type": "task", "ws_name": "QA / Testing & Launch Readiness", "ws_num": "WS16", "ws_role": "TPM", "task_name": "", "description": "", "owner": "QA Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-QA-9", "notes": "", "completed": false, "completed_at": ""}, {"id": "APP::task::", "type": "task", "ws_name": "App Store & Distribution", "ws_num": "WS17", "ws_role": "Owner", "task_name": "", "description": "", "owner": "Distribution Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-APP-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "APP::task::", "type": "task", "ws_name": "App Store & Distribution", "ws_num": "WS17", "ws_role": "Owner", "task_name": "", "description": "", "owner": "Ops Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-APP-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "APP::task::", "type": "task", "ws_name": "App Store & Distribution", "ws_num": "WS17", "ws_role": "Owner", "task_name": "", "description": "", "owner": "Marketing", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-APP-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "APP::task::", "type": "task", "ws_name": "App Store & Distribution", "ws_num": "WS17", "ws_role": "Owner", "task_name": "", "description": "", "owner": "Design", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-APP-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "APP::task::", "type": "task", "ws_name": "App Store & Distribution", "ws_num": "WS17", "ws_role": "Owner", "task_name": "", "description": "", "owner": "iOS Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-APP-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "APP::task::", "type": "task", "ws_name": "App Store & Distribution", "ws_num": "WS17", "ws_role": "Owner", "task_name": "", "description": "", "owner": "Android Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-APP-6", "notes": "", "completed": false, "completed_at": ""}, {"id": "APP::task::", "type": "task", "ws_name": "App Store & Distribution", "ws_num": "WS17", "ws_role": "Owner", "task_name": "", "description": "", "owner": "CTV Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-APP-7", "notes": "", "completed": false, "completed_at": ""}, {"id": "APP::task::", "type": "task", "ws_name": "App Store & Distribution", "ws_num": "WS17", "ws_role": "Owner", "task_name": "", "description": "", "owner": "CTV Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-APP-8", "notes": "", "completed": false, "completed_at": ""}, {"id": "CTP::task::", "type": "task", "ws_name": "Cutover & Transition Planning", "ws_num": "WS18", "ws_role": "TPM", "task_name": "", "description": "", "owner": "PMO + Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CTP-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "CTP::task::", "type": "task", "ws_name": "Cutover & Transition Planning", "ws_num": "WS18", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Data Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CTP-2", "notes": "", "completed": false, "completed_at": ""}, {"id": "CTP::task::", "type": "task", "ws_name": "Cutover & Transition Planning", "ws_num": "WS18", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Eng Lead + PMO", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CTP-3", "notes": "", "completed": false, "completed_at": ""}, {"id": "CTP::task::", "type": "task", "ws_name": "Cutover & Transition Planning", "ws_num": "WS18", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Eng Lead", "status": "Not Started", "due_date": "", "priority": "Medium", "jira": "TC-CTP-4", "notes": "", "completed": false, "completed_at": ""}, {"id": "CTP::task::", "type": "task", "ws_name": "Cutover & Transition Planning", "ws_num": "WS18", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Data Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CTP-5", "notes": "", "completed": false, "completed_at": ""}, {"id": "CTP::task::", "type": "task", "ws_name": "Cutover & Transition Planning", "ws_num": "WS18", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Eng Lead", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CTP-6", "notes": "", "completed": false, "completed_at": ""}, {"id": "CTP::task::", "type": "task", "ws_name": "Cutover & Transition Planning", "ws_num": "WS18", "ws_role": "TPM", "task_name": "", "description": "", "owner": "Live Ops + Eng", "status": "Not Started", "due_date": "", "priority": "High", "jira": "TC-CTP-7", "notes": "", "completed": false, "completed_at": ""}];
+let allTasks = JSON.parse(JSON.stringify(TASKS_DATA));
+const TODAY = new Date().toISOString().slice(0,10);
+
+function chipStatus(s){
+  const k=(s||"").toLowerCase().replace(/\s+/g,"_");
+  const map={"not_started":"chip-status-not-started","in_progress":"chip-status-in-progress",
+    "blocked":"chip-status-blocked","complete":"chip-status-complete","open":"chip-status-open"};
+  return map[k]||"chip-status-not-started";
+}
+function dueChip(due,completed){
+  if(!due||due==="TBD"||due==="") return `<span class="chip chip-due">${due||"No date"}</span>`;
+  if(completed) return `<span class="chip chip-due ok">✅ Done</span>`;
+  const cls=due<TODAY?"overdue":"ok";
+  const label=due<TODAY?`⚠️ ${due}`:due;
+  return `<span class="chip chip-due ${cls}">${label}</span>`;
+}
+function priorityChip(p){
+  if(!p) return "";
+  return `<span class="chip chip-priority-${p.toLowerCase()}">${p}</span>`;
+}
+function updateStats(tasks){
+  const total=tasks.length;
+  const complete=tasks.filter(t=>t.completed).length;
+  const outstanding=total-complete;
+  const overdue=tasks.filter(t=>!t.completed&&t.due_date&&t.due_date!=="TBD"&&t.due_date<TODAY).length;
+  const pct=total?Math.round(complete/total*100):0;
+  document.getElementById("statTotal").textContent=total;
+  document.getElementById("statComplete").textContent=complete;
+  document.getElementById("statOutstanding").textContent=outstanding;
+  document.getElementById("statOverdue").textContent=overdue;
+  document.getElementById("statPct").textContent=pct;
+  document.getElementById("progressFill").style.width=pct+"%";
+}
+function populateWSFilter(tasks){
+  const sel=document.getElementById("filterWS");
+  const existing=new Set(Array.from(sel.options).map(o=>o.value));
+  [...new Set(tasks.map(t=>t.ws_name))].sort().forEach(ws=>{
+    if(!existing.has(ws)){const o=document.createElement("option");o.value=ws;o.textContent=ws;sel.appendChild(o);}
+  });
+}
+function escHtml(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function toggleExpand(cardId){const el=document.getElementById(cardId);if(el)el.classList.toggle("expanded");}
+async function postUpdate(id,patch){
+  try{
+    await fetch("http://localhost:8765/api/update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,...patch})});
+  }catch(e){/* server not available — read-only mode */}
+}
+function toggleComplete(id,checked){
+  const t=allTasks.find(x=>x.id===id);if(!t)return;
+  t.completed=checked;t.completed_at=checked?new Date().toISOString().slice(0,10):"";
+  t.status=checked?"Complete":"In Progress";
+  postUpdate(id,{completed:checked,completed_at:t.completed_at,status:t.status});
+  render();
+}
+function updateStatus(id,status){
+  const t=allTasks.find(x=>x.id===id);if(!t)return;
+  t.status=status;t.completed=status==="Complete";
+  if(t.completed)t.completed_at=new Date().toISOString().slice(0,10);
+  postUpdate(id,{status,completed:t.completed,completed_at:t.completed_at});
+  render();
+}
+function saveNotes(id){
+  const safeId=id.replace(/[^a-z0-9]/gi,"_");
+  const notes=document.getElementById("notes_"+safeId)?.value||"";
+  const t=allTasks.find(x=>x.id===id);if(t)t.notes=notes;
+  postUpdate(id,{notes});
+  const conf=document.getElementById("conf_"+safeId);
+  if(conf){conf.classList.add("show");setTimeout(()=>conf.classList.remove("show"),2000);}
+}
+function render(){
+  const search=document.getElementById("searchBox").value.toLowerCase();
+  const fStatus=document.getElementById("filterStatus").value;
+  const fWS=document.getElementById("filterWS").value;
+  const sortBy=document.getElementById("sortBy").value;
+  const hideComplete=document.getElementById("hideComplete").checked;
+  let tasks=allTasks.filter(t=>{
+    if(hideComplete&&t.completed)return false;
+    if(fStatus&&t.status!==fStatus)return false;
+    if(fWS&&t.ws_name!==fWS)return false;
+    if(search&&!(t.task_name.toLowerCase().includes(search)||(t.description||"").toLowerCase().includes(search)||(t.notes||"").toLowerCase().includes(search)))return false;
+    return true;
+  });
+  const PRIORITY_ORDER={"High":0,"Medium":1,"Low":2,"":3};
+  const STATUS_ORDER={"Blocked":0,"In Progress":1,"Not Started":2,"Open":3,"Complete":4};
+  tasks.sort((a,b)=>{
+    if(sortBy==="due"){const ad=a.due_date||"9999";const bd=b.due_date||"9999";return ad.localeCompare(bd);}
+    if(sortBy==="status")return(STATUS_ORDER[a.status]??5)-(STATUS_ORDER[b.status]??5);
+    if(sortBy==="priority")return(PRIORITY_ORDER[a.priority]??3)-(PRIORITY_ORDER[b.priority]??3);
+    if(sortBy==="ws")return a.ws_name.localeCompare(b.ws_name);
+    return 0;
+  });
+  updateStats(allTasks);
+  const list=document.getElementById("taskList");
+  if(!tasks.length){list.innerHTML=`<div class="empty">No tasks match your filters.</div>`;return;}
+  list.innerHTML=tasks.map(t=>{
+    const overdue=!t.completed&&t.due_date&&t.due_date!=="TBD"&&t.due_date<TODAY;
+    const classes=["task-card",t.completed?"done":"",overdue?"overdue":""].filter(Boolean).join(" ");
+    const statusClass=chipStatus(t.status);
+    const typeLabel=t.type==="action"?"Action Item":"Task";
+    const desc=t.description?`<div class="card-description">${escHtml(t.description)}</div>`:"";
+    const completedStamp=t.completed_at?`<div class="completed-stamp">✅ Completed ${t.completed_at}</div>`:"";
+    const safeId=t.id.replace(/[^a-z0-9]/gi,"_");
+    return `
+    <div class="task-card ${classes}" id="card_${safeId}">
+      <div class="card-header">
+        <div class="checkbox-wrap">
+          <input type="checkbox" ${t.completed?"checked":""} title="Mark complete"
+                 onchange="toggleComplete('${t.id}',this.checked)">
+        </div>
+        <div class="card-title-block">
+          <div class="card-title">${escHtml(t.task_name)}</div>
+          <div class="card-meta">
+            <span class="chip chip-ws">${escHtml(t.ws_num)} · ${escHtml(t.ws_name)}</span>
+            <span class="chip chip-type">${typeLabel}</span>
+            <span class="chip ${statusClass}">${escHtml(t.status)}</span>
+            ${dueChip(t.due_date,t.completed)}
+            ${t.priority?priorityChip(t.priority):""}
+            ${t.jira?`<span class="chip" style="background:#E8F0FE;color:#1F6FBD">${escHtml(t.jira)}</span>`:""}
+          </div>
+          <button class="toggle-btn" onclick="toggleExpand('card_${safeId}')" title="Show details">&#9662; Details</button>
+        </div>
+      </div>
+      <div class="card-body">
+        ${desc}
+        <div class="status-row">
+          <span class="notes-label" style="margin:0">Status:</span>
+          <select class="status-select" onchange="updateStatus('${t.id}',this.value)">
+            ${["Not Started","In Progress","Blocked","Complete","Open"].map(s=>`<option ${t.status===s?"selected":""}>${s}</option>`).join("")}
+          </select>
+        </div>
+        <div class="notes-label">Progress notes / blockers:</div>
+        <textarea class="notes-area" id="notes_${safeId}"
+                  placeholder="Add notes, blockers, or updates…">${escHtml(t.notes||"")}</textarea>
+        <div style="display:flex;align-items:center">
+          <button class="save-btn" onclick="saveNotes('${t.id}')">Save Notes</button>
+          <span class="save-confirm" id="conf_${safeId}">✓ Saved</span>
+        </div>
+        ${completedStamp}
+      </div>
+    </div>`;
+  }).join("");
+}
+populateWSFilter(allTasks);
+render();
+</script>
+</body>
+</html>
