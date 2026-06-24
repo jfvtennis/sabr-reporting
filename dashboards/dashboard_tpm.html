@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SABR · TPM View — Completion Review</title>
+<style>
+  :root{--green:#8ED973;--green-dk:#4EA72E;--dark:#1A1A1A;--mid:#555;--light:#888;
+    --border:#E0E0E0;--bg:#F5F5F5;--card:#FFFFFF;--red:#C0392B;--amber:#B07D00;--blue:#1F6FBD;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--dark);}
+  .header{background:var(--dark);color:#fff;}
+  .header-top{background:var(--green);padding:10px 24px;display:flex;align-items:center;gap:12px;}
+  .header-top h1{font-size:18px;font-weight:700;color:var(--dark);}
+  .header-top .subtitle{font-size:12px;color:#333;}
+  .header-meta{padding:12px 24px;display:flex;gap:24px;align-items:center;flex-wrap:wrap;}
+  .header-meta .person{font-size:20px;font-weight:700;color:#fff;}
+  .header-meta .role{font-size:12px;color:#aaa;}
+  .tpm-badge{background:var(--green);color:var(--dark);border-radius:4px;padding:2px 10px;font-size:11px;font-weight:700;margin-left:10px;vertical-align:middle;}
+  .last-sync{font-size:11px;color:#888;margin-left:auto;}
+  .readonly-note{background:#FFF8E1;border:1px solid #F0D060;border-radius:6px;padding:8px 16px;font-size:12px;color:#7A5800;margin:8px 24px 0;}
+  .stats-bar{display:flex;gap:16px;padding:16px 24px;background:var(--card);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .stat{text-align:center;min-width:80px;}
+  .stat .num{font-size:28px;font-weight:700;line-height:1;}
+  .stat .lbl{font-size:11px;color:var(--light);text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
+  .stat.pending .num{color:var(--amber);}
+  .stat.accepted .num{color:var(--green-dk);}
+  .stat.total .num{color:var(--blue);}
+  .tabs{display:flex;background:var(--card);border-bottom:2px solid var(--border);padding:0 24px;}
+  .tab{padding:10px 20px;font-size:13px;font-weight:600;color:var(--mid);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;}
+  .tab.active{color:var(--dark);border-bottom-color:var(--green-dk);}
+  .tab:hover{color:var(--dark);}
+  .toolbar{display:flex;gap:10px;padding:12px 24px;background:var(--bg);border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;}
+  .toolbar select,.toolbar input{padding:6px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:#fff;}
+  .toolbar input{min-width:200px;}
+  .task-list{padding:16px 24px;display:flex;flex-direction:column;gap:12px;}
+  .task-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .task-card.accepted-card{background:#F0FAF0;border-color:#B8E8A0;}
+  .card-header{padding:14px 16px 10px;}
+  .card-title{font-size:14px;font-weight:600;color:var(--dark);line-height:1.4;margin-bottom:8px;}
+  .card-meta{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+  .chip{display:inline-block;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;white-space:nowrap;}
+  .chip-ws{background:#EBEBEB;color:#555;}
+  .chip-type{background:#E8F0FE;color:#1F6FBD;}
+  .chip-person{border-radius:4px;padding:2px 9px;font-size:11px;font-weight:700;}
+  .chip-complete{background:#E8F8E8;color:var(--green-dk);}
+  .chip-accepted{background:#D4EDDA;color:#155724;}
+  .task-notes{border-left:3px solid var(--green);margin:0 16px 8px;padding:4px 10px;font-size:12px;color:var(--mid);font-style:italic;}
+  .card-actions{display:flex;gap:8px;padding:10px 16px;background:#FAFAFA;border-top:1px solid var(--border);align-items:center;flex-wrap:wrap;}
+  .btn-accept{background:#4EA72E;color:#fff;border:none;border-radius:5px;padding:7px 18px;font-size:12px;font-weight:700;cursor:pointer;}
+  .btn-accept:hover{background:#3d8a24;}
+  .btn-reopen{background:#FFF8E1;color:#7A5800;border:1px solid #E0C060;border-radius:5px;padding:7px 18px;font-size:12px;font-weight:700;cursor:pointer;}
+  .btn-reopen:hover{background:#F0D060;}
+  .accepted-stamp{font-size:11px;color:var(--green-dk);font-weight:600;}
+  .owner-label{font-size:11px;color:var(--light);margin-left:auto;}
+  .reopen-panel{display:none;padding:12px 16px;background:#FFFBEA;border-top:1px solid #F0D060;}
+  .reopen-panel.show{display:block;}
+  .reopen-label{font-size:12px;font-weight:700;color:#7A5800;margin-bottom:6px;}
+  .reopen-textarea{width:100%;border:1px solid var(--border);border-radius:4px;padding:7px 10px;font-size:13px;font-family:inherit;resize:vertical;min-height:60px;margin-bottom:8px;}
+  .btn-confirm-reopen{background:var(--amber);color:#fff;border:none;border-radius:4px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px;}
+  .btn-cancel{background:#F5F5F5;border:1px solid var(--border);border-radius:4px;padding:6px 14px;font-size:12px;cursor:pointer;}
+  .empty{text-align:center;padding:60px 24px;color:var(--light);font-size:15px;}
+  .all-good{text-align:center;padding:40px 24px;}
+  .all-good .icon{font-size:48px;margin-bottom:12px;}
+  .all-good .msg{font-size:16px;color:var(--green-dk);font-weight:700;}
+  .all-good .sub{font-size:13px;color:var(--light);margin-top:6px;}
+  @media(max-width:600px){.stats-bar{gap:8px;padding:12px 16px;}.task-list{padding:12px 16px;}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-top"><h1>🎾 Project SABR</h1><span class="subtitle">Task Dashboard</span></div>
+  <div class="header-meta">
+    <div>
+      <div class="person">TPM <span class="tpm-badge">PROGRAM OFFICE</span></div>
+      <div class="role">Completion Review — All Workstreams</div>
+    </div>
+    <div class="last-sync">Last synced: 2026-06-24 16:00</div>
+  </div>
+</div>
+<div class="readonly-note" id="readonlyNote">
+  📖 Read-only snapshot from 2026-06-24 16:00. To accept or re-open tasks, open
+  <a href="http://localhost:8765/dashboard/tpm" target="_blank">the local TPM dashboard</a>
+  (requires the server running on your machine).
+</div>
+<div class="stats-bar">
+  <div class="stat pending"><div class="num" id="statPending">—</div><div class="lbl">Pending Review</div></div>
+  <div class="stat accepted"><div class="num" id="statAccepted">—</div><div class="lbl">Accepted</div></div>
+  <div class="stat total"><div class="num" id="statTotal">—</div><div class="lbl">Total Complete</div></div>
+</div>
+<div class="tabs">
+  <div class="tab active" id="tabPending" onclick="switchTab('pending')">⏳ Pending Review</div>
+  <div class="tab" id="tabAccepted" onclick="switchTab('accepted')">✅ Accepted</div>
+</div>
+<div class="toolbar">
+  <input type="text" id="searchBox" placeholder="🔍  Search tasks…" oninput="render()">
+  <select id="filterPerson" onchange="render()"><option value="">All Team Members</option></select>
+  <select id="filterWS" onchange="render()"><option value="">All Workstreams</option></select>
+</div>
+<div class="task-list" id="taskList"></div>
+<script>
+const TASKS_DATA = [];
+const PERSON_COLORS = {
+  "aditya_pande":      {bg:"#E6F1FB",fg:"#0C447C"},
+  "ari_brock":         {bg:"#E1F5EE",fg:"#085041"},
+  "cristina_thompson": {bg:"#EEEDFE",fg:"#3C3489"},
+  "keff_ratcliffe":    {bg:"#E6F1FB",fg:"#0C447C"},
+  "chris_krueger":     {bg:"#F1EFE8",fg:"#555555"},
+  "juan_valdes":       {bg:"#F1EFE8",fg:"#555555"},
+  "niquita":           {bg:"#EEEDFE",fg:"#3C3489"},
+};
+let allTasks = JSON.parse(JSON.stringify(TASKS_DATA));
+let currentTab = "pending";
+const TODAY = new Date().toISOString().slice(0,10);
+
+function escHtml(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function personChip(name,slug){
+  const c=PERSON_COLORS[slug]||{bg:"#EBEBEB",fg:"#555"};
+  return `<span class="chip-person" style="background:${c.bg};color:${c.fg};">${escHtml(name)}</span>`;
+}
+function switchTab(tab){
+  currentTab=tab;
+  document.getElementById("tabPending").classList.toggle("active",tab==="pending");
+  document.getElementById("tabAccepted").classList.toggle("active",tab==="accepted");
+  render();
+}
+function updateStats(){
+  const pending=allTasks.filter(t=>!t.tpm_accepted).length;
+  const accepted=allTasks.filter(t=>t.tpm_accepted).length;
+  document.getElementById("statPending").textContent=pending;
+  document.getElementById("statAccepted").textContent=accepted;
+  document.getElementById("statTotal").textContent=allTasks.length;
+  document.getElementById("tabPending").textContent=`⏳ Pending Review (${pending})`;
+  document.getElementById("tabAccepted").textContent=`✅ Accepted (${accepted})`;
+}
+function populateFilters(){
+  const pSel=document.getElementById("filterPerson");
+  const wSel=document.getElementById("filterWS");
+  const persons=[...new Map(allTasks.map(t=>[t.person_slug,t.person_name])).entries()];
+  persons.forEach(([slug,name])=>{
+    if(!Array.from(pSel.options).some(o=>o.value===slug)){
+      const o=document.createElement("option");o.value=slug;o.textContent=name;pSel.appendChild(o);
+    }
+  });
+  const wsList=[...new Set(allTasks.map(t=>t.ws_name))].sort();
+  wsList.forEach(ws=>{
+    if(!Array.from(wSel.options).some(o=>o.value===ws)){
+      const o=document.createElement("option");o.value=ws;o.textContent=ws;wSel.appendChild(o);
+    }
+  });
+}
+function render(){
+  const search=document.getElementById("searchBox").value.toLowerCase();
+  const fPerson=document.getElementById("filterPerson").value;
+  const fWS=document.getElementById("filterWS").value;
+  let tasks=allTasks.filter(t=>{
+    if(currentTab==="pending"&&t.tpm_accepted)return false;
+    if(currentTab==="accepted"&&!t.tpm_accepted)return false;
+    if(fPerson&&t.person_slug!==fPerson)return false;
+    if(fWS&&t.ws_name!==fWS)return false;
+    if(search&&!(t.task_name.toLowerCase().includes(search)||
+      (t.notes||"").toLowerCase().includes(search)||
+      (t.ws_name||"").toLowerCase().includes(search)||
+      (t.person_name||"").toLowerCase().includes(search)))return false;
+    return true;
+  });
+  tasks.sort((a,b)=>(b.completed_at||"").localeCompare(a.completed_at||""));
+  updateStats();
+  const list=document.getElementById("taskList");
+  if(!tasks.length&&currentTab==="pending"){
+    list.innerHTML=`<div class="all-good"><div class="icon">🎉</div>
+      <div class="msg">All caught up!</div>
+      <div class="sub">No completions waiting for review.</div></div>`;
+    return;
+  }
+  if(!tasks.length){list.innerHTML=`<div class="empty">No tasks match your filters.</div>`;return;}
+  list.innerHTML=tasks.map(t=>{
+    const safeId=t.id.replace(/[^a-z0-9]/gi,"_");
+    const typeLabel=t.type==="action"?"Action Item":"Task";
+    const completedOn=t.completed_at?`✅ ${t.completed_at}`:"✅ Complete";
+    if(t.tpm_accepted){return `
+      <div class="task-card accepted-card">
+        <div class="card-header">
+          <div class="card-title">${escHtml(t.task_name)}</div>
+          <div class="card-meta">
+            ${personChip(t.person_name,t.person_slug)}
+            <span class="chip chip-ws">${escHtml(t.ws_num)} · ${escHtml(t.ws_name)}</span>
+            <span class="chip chip-type">${typeLabel}</span>
+            <span class="chip chip-accepted">✅ Accepted ${t.tpm_accepted_at||""}</span>
+            <span class="chip" style="background:#E8F8E8;color:#4EA72E;">${completedOn}</span>
+          </div>
+        </div>
+        ${t.notes?`<div class="task-notes">💬 ${escHtml(t.notes)}</div>`:""}
+        <div class="card-actions">
+          <span class="accepted-stamp">TPM accepted</span>
+          <button class="btn-reopen" onclick="startReopen('${t.id}')">↩ Re-open</button>
+          <span class="owner-label">${escHtml(t.owner||"")}</span>
+        </div>
+        <div class="reopen-panel" id="reopen_${safeId}">
+          <div class="reopen-label">Note to team member (optional):</div>
+          <textarea class="reopen-textarea" id="reopen_note_${safeId}" placeholder="Explain why you're re-opening…"></textarea>
+          <button class="btn-confirm-reopen" onclick="confirmReopen('${t.id}')">↩ Confirm Re-open</button>
+          <button class="btn-cancel" onclick="cancelReopen('${t.id}')">Cancel</button>
+        </div>
+      </div>`;
+    }
+    return `
+    <div class="task-card">
+      <div class="card-header">
+        <div class="card-title">${escHtml(t.task_name)}</div>
+        <div class="card-meta">
+          ${personChip(t.person_name,t.person_slug)}
+          <span class="chip chip-ws">${escHtml(t.ws_num)} · ${escHtml(t.ws_name)}</span>
+          <span class="chip chip-type">${typeLabel}</span>
+          <span class="chip chip-complete">${completedOn}</span>
+        </div>
+      </div>
+      ${t.notes?`<div class="task-notes">💬 ${escHtml(t.notes)}</div>`:""}
+      <div class="card-actions">
+        <button class="btn-accept" onclick="acceptTask('${t.id}')">✅ Accept</button>
+        <button class="btn-reopen" onclick="startReopen('${t.id}')">↩ Re-open</button>
+        <span class="owner-label">${escHtml(t.owner||"")}</span>
+      </div>
+      <div class="reopen-panel" id="reopen_${safeId}">
+        <div class="reopen-label">Note to team member (optional):</div>
+        <textarea class="reopen-textarea" id="reopen_note_${safeId}" placeholder="Explain why you're re-opening…"></textarea>
+        <button class="btn-confirm-reopen" onclick="confirmReopen('${t.id}')">↩ Confirm Re-open</button>
+        <button class="btn-cancel" onclick="cancelReopen('${t.id}')">Cancel</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+function startReopen(id){const safeId=id.replace(/[^a-z0-9]/gi,"_");document.getElementById("reopen_"+safeId)?.classList.add("show");}
+function cancelReopen(id){const safeId=id.replace(/[^a-z0-9]/gi,"_");document.getElementById("reopen_"+safeId)?.classList.remove("show");}
+async function postAction(id,action,note){
+  try{
+    const r=await fetch("http://localhost:8765/api/tpm_action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,action,note:note||""})});
+    if(!r.ok)throw new Error();
+    return true;
+  }catch(e){
+    alert("Could not save — is the local dashboard server running?\nStart it with dashboard.command");
+    return false;
+  }
+}
+async function acceptTask(id){
+  if(!await postAction(id,"accept"))return;
+  const t=allTasks.find(x=>x.id===id);
+  if(t){t.tpm_accepted=true;t.tpm_accepted_at=TODAY;}
+  render();
+}
+async function confirmReopen(id){
+  const safeId=id.replace(/[^a-z0-9]/gi,"_");
+  const note=document.getElementById("reopen_note_"+safeId)?.value||"";
+  if(!await postAction(id,"reopen",note))return;
+  allTasks=allTasks.filter(t=>t.id!==id);
+  render();
+}
+populateFilters();
+render();
+// Try live server — if available, reload with fresh data
+(async()=>{
+  try{
+    const r=await fetch("http://localhost:8765/api/tpm_tasks");
+    if(r.ok){
+      allTasks=await r.json();
+      populateFilters();
+      render();
+      const note=document.getElementById("readonlyNote");
+      if(note)note.style.display="none";
+    }
+  }catch(e){/* server not running — use baked-in data */}
+})();
+</script>
+</body>
+</html>
