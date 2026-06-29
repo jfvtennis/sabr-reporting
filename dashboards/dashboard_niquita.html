@@ -90,11 +90,11 @@
       <div class="person">Niquita</div>
       <div class="role">VP</div>
     </div>
-    <div class="last-sync">Last synced: 2026-06-29 11:54</div>
+    <div class="last-sync">Last synced: 2026-06-29 14:50</div>
   </div>
 </div>
 <div class="readonly-note" id="readonlyNote">
-  📖 Read-only view — tasks reflect the last refresh on 2026-06-29 11:54.
+  📖 Read-only view — tasks reflect the last refresh on 2026-06-29 14:50.
   To mark tasks complete or add notes, open <a href="http://localhost:8765/dashboard/niquita" target="_blank">the local dashboard</a> (requires the server running on your machine).
 </div>
 <div class="stats-bar">
@@ -129,7 +129,7 @@
 </div>
 <div class="task-list" id="taskList"></div>
 <script>
-const TASKS_DATA = [{"id": "PD::task::", "type": "task", "ws_name": "Product Design", "ws_num": "WS03", "ws_role": "Owner", "task_name": "", "description": "", "owner": "Keff\nCristina", "status": "In Progress", "due_date": "", "priority": "High", "jira": "TC-PD-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "PD::action::1", "type": "action", "ws_name": "Product Design", "ws_num": "WS03", "ws_role": "Owner", "task_name": "Feature Prioritization (P0 & P1) List", "description": "", "owner": "Keff", "status": "Open", "due_date": "6/26/26", "priority": "", "jira": "[TC-PD-###]", "notes": "", "completed": false, "completed_at": ""}, {"id": "CLR::action::4", "type": "action", "ws_name": "Cleeng / Recurly", "ws_num": "WS09", "ws_role": "Contributor", "task_name": "Complete comprehensive subscription flow documentation including screenshots, wireframes, edge cases, and error states", "description": "", "owner": "Niquita", "status": "Open", "due_date": "TBD", "priority": "", "jira": "", "notes": "", "completed": false, "completed_at": ""}];
+const TASKS_DATA = [{"id": "PD::task::", "type": "task", "ws_name": "Product Design", "ws_num": "WS03", "ws_role": "Owner", "task_name": "", "description": "", "owner": "Keff\nCristina", "status": "In Progress", "due_date": "", "priority": "High", "jira": "TC-PD-1", "notes": "", "completed": false, "completed_at": ""}, {"id": "PD::action::1", "type": "action", "ws_name": "Product Design", "ws_num": "WS03", "ws_role": "Owner", "task_name": "Feature Prioritization (P0 & P1) List", "description": "", "owner": "Keff", "status": "Open", "due_date": "6/26/26", "priority": "", "jira": "Open", "notes": "", "completed": false, "completed_at": ""}, {"id": "CLR::action::4", "type": "action", "ws_name": "Cleeng / Recurly", "ws_num": "WS09", "ws_role": "Contributor", "task_name": "Complete comprehensive subscription flow documentation including screenshots, wireframes, edge cases, and error states", "description": "", "owner": "Niquita", "status": "Open", "due_date": "TBD", "priority": "", "jira": "Open", "notes": "", "completed": false, "completed_at": ""}];
 let allTasks = JSON.parse(JSON.stringify(TASKS_DATA));
 const TODAY = new Date().toISOString().slice(0,10);
 
