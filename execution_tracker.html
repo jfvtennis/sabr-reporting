@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SABR Execution Tracker · Tennis Channel</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif; background: #F8F9FA; color: #1A1A1A; }
+.header { background: #0F6E56; color: #fff; padding: 14px 32px; display: flex; align-items: center; gap: 16px; }
+.header h1 { font-size: 17px; font-weight: 600; }
+.header .meta { font-size: 11px; opacity: 0.75; margin-left: auto; text-align: right; }
+.container { max-width: 1080px; margin: 0 auto; padding: 24px 32px; }
+.summary-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 28px; }
+.stat-card { background: #fff; border: 1px solid #E5E7EB; border-radius: 8px; padding: 14px 16px; }
+.stat-card .lbl { font-size: 11px; color: #6B7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+.stat-card .val { font-size: 22px; font-weight: 600; color: #111827; }
+.section { margin-bottom: 28px; }
+.section-head { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 2px solid #0F6E56; display: flex; align-items: center; gap: 8px; }
+.count-pill { font-size: 11px; font-weight: 400; color: #6B7280; background: #F3F4F6; padding: 1px 8px; border-radius: 99px; }
+.update-hint { font-size: 11px; color: #9CA3AF; margin-left: auto; }
+.gate-list, .vendor-list, .risk-list { display: flex; flex-direction: column; gap: 5px; }
+.gate-row { background: #fff; border: 1px solid #E5E7EB; border-radius: 7px; padding: 9px 12px; display: flex; align-items: flex-start; gap: 10px; }
+.gate-date { font-size: 11px; font-weight: 700; color: #374151; min-width: 52px; padding-top: 1px; }
+.gate-desc { flex: 1; font-size: 13px; color: #374151; }
+.gate-owner { font-size: 11px; color: #9CA3AF; min-width: 110px; text-align: right; padding-top: 1px; }
+.notes { display: block; font-size: 11px; color: #9CA3AF; margin-top: 3px; }
+.eng-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.eng-card { background: #fff; border: 1px solid #E5E7EB; border-radius: 7px; padding: 11px 12px; }
+.eng-header { display: flex; align-items: baseline; gap: 7px; margin-bottom: 6px; }
+.eng-code { font-size: 13px; font-weight: 700; color: #0F6E56; }
+.eng-role { font-size: 11px; color: #9CA3AF; }
+.eng-phase { font-size: 12px; color: #374151; line-height: 1.45; margin-bottom: 7px; min-height: 32px; }
+.eng-footer { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.eng-gate { font-size: 10px; color: #9CA3AF; flex: 1; }
+.eng-notes { font-size: 11px; color: #6B7280; margin-top: 6px; padding-top: 6px; border-top: 1px solid #F3F4F6; }
+.vendor-row { background: #fff; border: 1px solid #E5E7EB; border-radius: 7px; padding: 9px 12px; display: flex; align-items: flex-start; gap: 10px; }
+.vendor-name { font-size: 13px; font-weight: 500; color: #111827; min-width: 150px; }
+.vendor-needed { font-size: 11px; color: #9CA3AF; min-width: 130px; padding-top: 1px; }
+.vendor-note { flex: 1; font-size: 12px; color: #6B7280; }
+.crit-badge { font-size: 10px; font-weight: 600; color: #991B1B; background: #FEE2E2; padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+.risk-row { background: #fff; border: 1px solid #E5E7EB; border-radius: 7px; padding: 10px 12px; }
+.risk-head { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+.risk-num { font-size: 11px; font-weight: 600; color: #9CA3AF; min-width: 24px; }
+.risk-title { flex: 1; font-size: 13px; font-weight: 500; color: #111827; }
+.risk-owner { font-size: 11px; color: #9CA3AF; }
+.risk-action { font-size: 12px; color: #6B7280; padding-left: 34px; line-height: 1.5; }
+.risk-notes { font-size: 11px; color: #0F6E56; padding-left: 34px; margin-top: 4px; }
+.badge { font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 99px; border: none; white-space: nowrap; flex-shrink: 0; }
+.b-not-started   { background: #F3F4F6; color: #6B7280; }
+.b-in-progress   { background: #DBEAFE; color: #1E40AF; }
+.b-at-risk       { background: #FEF3C7; color: #92400E; }
+.b-done          { background: #D1FAE5; color: #065F46; }
+.b-on-track      { background: #D1FAE5; color: #065F46; }
+.b-blocked       { background: #FEE2E2; color: #991B1B; }
+.b-not-contracted{ background: #FEE2E2; color: #991B1B; }
+.b-in-negotiation{ background: #EDE9FE; color: #5B21B6; }
+.b-verbal-only   { background: #FEF3C7; color: #92400E; }
+.b-contracted    { background: #D1FAE5; color: #065F46; }
+.b-open          { background: #FEE2E2; color: #991B1B; }
+.b-action-taken  { background: #DBEAFE; color: #1E40AF; }
+.b-monitoring    { background: #FEF3C7; color: #92400E; }
+.b-mitigated     { background: #D1FAE5; color: #065F46; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div style="font-size:11px;opacity:0.7;margin-bottom:2px;">Tennis Channel · Platform Relaunch</div>
+    <h1>Execution Tracker</h1>
+  </div>
+  <div class="meta">Launch: December 1, 2026 &nbsp;·&nbsp; Generated July 01, 2026<br>Update statuses in SABR_Execution_Tracker.xlsx, then run generate_tracker.py</div>
+</div>
+
+<div class="container">
+
+  <div class="summary-bar">
+    <div class="stat-card"><div class="lbl">Gates complete</div><div class="val">2 / 15</div></div>
+    <div class="stat-card"><div class="lbl">Vendors contracted</div><div class="val">4 / 7</div></div>
+    <div class="stat-card"><div class="lbl">Risks active</div><div class="val">3 / 5</div></div>
+    <div class="stat-card"><div class="lbl">Engineers on track</div><div class="val">8 / 10</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">Critical gates <span class="count-pill">2 / 15 done</span>
+      <span class="update-hint">Edit in Gates tab → run generate_tracker.py</span></div>
+    <div class="gate-list">
+        <div class="gate-row">
+          <span class="gate-date">NOW</span>
+          <span class="gate-desc">Bitmovin contract initiated — legal + procurement start now. 3–4 week cycle.</span>
+          <span class="gate-owner">VP Eng + Legal</span>
+          <span class="badge b-in-progress">In Progress</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">NOW</span>
+          <span class="gate-desc">Amagi DRM commitment in writing — non-DRM Jul 15, DRM Aug 15 confirmed.</span>
+          <span class="gate-owner">VP Engineering</span>
+          <span class="badge b-in-progress">In Progress</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">NOW</span>
+          <span class="gate-desc">BE1 contacts MVPD providers — Comcast, DirecTV, Dish, Cox Adobe Pass programs.</span>
+          <span class="gate-owner">BE1</span>
+          <span class="badge b-in-progress">In Progress</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Jun 8</span>
+          <span class="gate-desc">All engineering starts — 8 US engineers active, all tracks begin in parallel.</span>
+          <span class="gate-owner">Full team</span>
+          <span class="badge b-done">Done</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Jun 22</span>
+          <span class="gate-desc">Foxxum API docs v1 delivered — TV app CMS migration can begin.</span>
+          <span class="gate-owner">BE1</span>
+          <span class="badge b-done">Done</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Jun 30</span>
+          <span class="gate-desc">Bitmovin contract signed — player integration gate for MOB1, MOB2, WEB1.</span>
+          <span class="gate-owner">VP Eng + Legal</span>
+          <span class="badge b-in-progress">In Progress</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Jun 30</span>
+          <span class="gate-desc">Core carousel APIs live in ACE — unblocks all 5 teams simultaneously.</span>
+          <span class="gate-owner">BE1</span>
+          <span class="badge b-in-progress">In Progress</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Jul 1</span>
+          <span class="gate-desc">BE3 + C1 start · BE3 takes over ACE from BE1 · WEB2 shifts to tennischannel.com.</span>
+          <span class="gate-owner">Multiple</span>
+          <span class="badge b-not-started">Not Started</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Jul 15</span>
+          <span class="gate-desc">Amagi non-DRM streams live · TV QR code protocol kickoff (BE2/WEB1/Foxxum).</span>
+          <span class="gate-owner">Amagi · BE2/WEB1</span>
+          <span class="badge b-not-started">Not Started</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Aug 15</span>
+          <span class="gate-desc">Amagi DRM streams live · FairPlay (MOB1) + Widevine (MOB2) certification begins.</span>
+          <span class="gate-owner">Amagi · MOB1/MOB2</span>
+          <span class="badge b-not-started">Not Started</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Sep 1</span>
+          <span class="gate-desc">Adobe Pass MVPD complete — all 4 providers certified (Comcast, DirecTV, Dish, Cox).</span>
+          <span class="gate-owner">BE1 + BE3 + C1</span>
+          <span class="badge b-not-started">Not Started</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Oct 15</span>
+          <span class="gate-desc">All surfaces feature complete — website, iOS, Android, TV.</span>
+          <span class="gate-owner">Full team</span>
+          <span class="badge b-not-started">Not Started</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Oct 31</span>
+          <span class="gate-desc">Staging freeze begins · full platform regression by C1.</span>
+          <span class="gate-owner">C1 + Full team</span>
+          <span class="badge b-not-started">Not Started</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Nov 7</span>
+          <span class="gate-desc">App Store + Play Store submitted · Foxxum submitted to TV platforms.</span>
+          <span class="gate-owner">MOB1/2 + Foxxum</span>
+          <span class="badge b-not-started">Not Started</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Dec 1</span>
+          <span class="gate-desc">LAUNCH — all platforms simultaneously. Tennis quiet period begins.</span>
+          <span class="gate-owner">Full team</span>
+          <span class="badge b-not-started">Not Started</span>
+        </div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">Engineer tracks <span class="count-pill">8 on track</span>
+      <span class="update-hint">Edit in Engineers tab → run generate_tracker.py</span></div>
+    <div class="eng-grid">
+        <div class="eng-card">
+          <div class="eng-header"><span class="eng-code">BE1</span><span class="eng-role">Backend Eng 1</span></div>
+          <div class="eng-phase">Carousel resolvers (priority 1) + Foxxum API docs (week 1)</div>
+          <div class="eng-footer"><span class="eng-gate">→ Carousel APIs Jun 30</span><span class="badge b-on-track">On Track</span></div>
+          
+        </div>
+
+        <div class="eng-card">
+          <div class="eng-header"><span class="eng-code">BE2</span><span class="eng-role">Backend Eng 2</span></div>
+          <div class="eng-phase">Auth0 facade extensions + Amagi stream mapping service</div>
+          <div class="eng-footer"><span class="eng-gate">→ Auth0 complete Jul 31</span><span class="badge b-on-track">On Track</span></div>
+          
+        </div>
+
+        <div class="eng-card">
+          <div class="eng-header"><span class="eng-code">BE3</span><span class="eng-role">Backend Eng 3</span></div>
+          <div class="eng-phase">Joins Jul 1 — ACE carousel extensions from BE1 + Gracenote EPG ingestion</div>
+          <div class="eng-footer"><span class="eng-gate">Starts Jul 1</span><span class="badge b-not-started">Not Started</span></div>
+          
+        </div>
+
+        <div class="eng-card">
+          <div class="eng-header"><span class="eng-code">MOB1</span><span class="eng-role">iOS Lead</span></div>
+          <div class="eng-phase">RN setup + navigation + design system + non-player screens</div>
+          <div class="eng-footer"><span class="eng-gate">→ Carousel APIs Jun 30</span><span class="badge b-on-track">On Track</span></div>
+          
+        </div>
+
+        <div class="eng-card">
+          <div class="eng-header"><span class="eng-code">MOB2</span><span class="eng-role">Android Lead</span></div>
+          <div class="eng-phase">RN setup + content browsing screens + EPG screen shell</div>
+          <div class="eng-footer"><span class="eng-gate">→ Carousel APIs Jun 30</span><span class="badge b-on-track">On Track</span></div>
+          
+        </div>
+
+        <div class="eng-card">
+          <div class="eng-header"><span class="eng-code">WEB1</span><span class="eng-role">Web Eng 1</span></div>
+          <div class="eng-phase">Next.js architecture + routing + design system + non-video pages</div>
+          <div class="eng-footer"><span class="eng-gate">→ Carousel APIs Jun 30</span><span class="badge b-on-track">On Track</span></div>
+          
+        </div>
+
+        <div class="eng-card">
+          <div class="eng-header"><span class="eng-code">WEB2</span><span class="eng-role">Web Eng 2 / CMS</span></div>
+          <div class="eng-phase">Match Central CMS — all carousel types, platform targeting, scheduling</div>
+          <div class="eng-footer"><span class="eng-gate">→ Hand off CMS Jul 1</span><span class="badge b-on-track">On Track</span></div>
+          
+        </div>
+
+        <div class="eng-card">
+          <div class="eng-header"><span class="eng-code">DEVOPS</span><span class="eng-role">DevOps Eng</span></div>
+          <div class="eng-phase">All environments + CI/CD pipelines + Redis cluster + mobile CI (Fastlane)</div>
+          <div class="eng-footer"><span class="eng-gate">→ Continuous from Jun 8</span><span class="badge b-on-track">On Track</span></div>
+          
+        </div>
+
+        <div class="eng-card">
+          <div class="eng-header"><span class="eng-code">C1</span><span class="eng-role">QA Contractor</span></div>
+          <div class="eng-phase">Joins Jul 1 — ACE API regression + MVPD test suites per provider</div>
+          <div class="eng-footer"><span class="eng-gate">Starts Jul 1</span><span class="badge b-not-started">Not Started</span></div>
+          
+        </div>
+
+        <div class="eng-card">
+          <div class="eng-header"><span class="eng-code">Foxxum</span><span class="eng-role">TV App / Partner</span></div>
+          <div class="eng-phase">API docs received Jun 22 — TV app CMS migration planning begins</div>
+          <div class="eng-footer"><span class="eng-gate">→ Integration Oct 22</span><span class="badge b-on-track">On Track</span></div>
+          
+        </div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">Vendor status <span class="count-pill">4 / 7 contracted</span>
+      <span class="update-hint">Edit in Vendors tab → run generate_tracker.py</span></div>
+    <div class="vendor-list">
+        <div class="vendor-row">
+          <span class="vendor-name">Bitmovin <span class="crit-badge">critical</span></span>
+          <span class="vendor-needed">Contract by Jun 30</span>
+          <span class="vendor-note">MOB1/2/WEB1 blocked on player integration without this. Initiate legal this week.</span>
+          <span class="badge b-not-contracted">Not Contracted</span>
+        </div>
+
+        <div class="vendor-row">
+          <span class="vendor-name">Amagi — non-DRM <span class="crit-badge">critical</span></span>
+          <span class="vendor-needed">Streams by Jul 15</span>
+          <span class="vendor-note">Unblocks player integration on all surfaces. ~80% of player work before DRM.</span>
+          <span class="badge b-in-progress">In Progress</span>
+        </div>
+
+        <div class="vendor-row">
+          <span class="vendor-name">Amagi — DRM <span class="crit-badge">critical</span></span>
+          <span class="vendor-needed">Streams by Aug 15</span>
+          <span class="vendor-note">Written commitment required. If Amagi slips past Aug 15, Dec 1 is at risk.</span>
+          <span class="badge b-not-contracted">Not Contracted</span>
+        </div>
+
+        <div class="vendor-row">
+          <span class="vendor-name">Adobe Pass <span class="crit-badge">critical</span></span>
+          <span class="vendor-needed">Build Jul / Done Sep</span>
+          <span class="vendor-note">Contracted ✓. Credentials in place. MVPD provider contacts needed this week.</span>
+          <span class="badge b-contracted">Contracted ✓</span>
+        </div>
+
+        <div class="vendor-row">
+          <span class="vendor-name">Cleeng <span class="crit-badge">critical</span></span>
+          <span class="vendor-needed">Same account</span>
+          <span class="vendor-note">Live ✓ — same account as current apps. Zero migration. BE2/MOB1/MOB2/WEB1 integrate.</span>
+          <span class="badge b-contracted">Contracted ✓</span>
+        </div>
+
+        <div class="vendor-row">
+          <span class="vendor-name">Auth0 <span class="crit-badge">critical</span></span>
+          <span class="vendor-needed">Same account</span>
+          <span class="vendor-note">Live ✓ — same account. BE2 builds facade extensions for new platform needs.</span>
+          <span class="badge b-contracted">Contracted ✓</span>
+        </div>
+
+        <div class="vendor-row">
+          <span class="vendor-name">Gracenote</span>
+          <span class="vendor-needed">Build Jul / Done Aug</span>
+          <span class="vendor-note">Contracted ✓. BE3 owns EPG ingestion Jul 1. Coordinate stream URL mapping with Amagi.</span>
+          <span class="badge b-contracted">Contracted ✓</span>
+        </div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">Risk register <span class="count-pill">3 active</span>
+      <span class="update-hint">Edit in Risks tab → run generate_tracker.py</span></div>
+    <div class="risk-list">
+        <div class="risk-row">
+          <div class="risk-head">
+            <span class="risk-num">6.1</span>
+            <span class="risk-title">Adobe Pass MVPD certification queues</span>
+            <span class="risk-owner">BE1</span>
+            <span class="badge b-open">Open</span>
+          </div>
+          <div class="risk-action">Contact Comcast, DirecTV, Dish, Cox developer programs this week. Queue wait can be 2–3 weeks.</div>
+          
+        </div>
+
+        <div class="risk-row">
+          <div class="risk-head">
+            <span class="risk-num">6.2</span>
+            <span class="risk-title">TV QR code login flow — 4-surface protocol</span>
+            <span class="risk-owner">BE2 + WEB1 + Foxxum</span>
+            <span class="badge b-not-started">Not Started</span>
+          </div>
+          <div class="risk-action">BE2, WEB1, Foxxum kickoff in week of Jul 1. Align on protocol BEFORE anyone builds.</div>
+          
+        </div>
+
+        <div class="risk-row">
+          <div class="risk-head">
+            <span class="risk-num">6.3</span>
+            <span class="risk-title">DRM certification — FairPlay vs Widevine</span>
+            <span class="risk-owner">MOB1 / MOB2 / C1</span>
+            <span class="badge b-not-started">Not Started</span>
+          </div>
+          <div class="risk-action">Amagi DRM must be live Aug 15. Allow 4–5 weeks. FairPlay (iOS) and Widevine (Android) are separate certifications.</div>
+          
+        </div>
+
+        <div class="risk-row">
+          <div class="risk-head">
+            <span class="risk-num">6.4</span>
+            <span class="risk-title">Carousel APIs — first internal gate</span>
+            <span class="risk-owner">BE1</span>
+            <span class="badge b-action-taken">Action Taken</span>
+          </div>
+          <div class="risk-action">BE1 starts carousel resolvers Jun 8, nothing else takes priority. Must be live end of June.</div>
+          <div class="risk-notes">BE1 active on this from day 1</div>
+        </div>
+
+        <div class="risk-row">
+          <div class="risk-head">
+            <span class="risk-num">6.5</span>
+            <span class="risk-title">Foxxum schema stability</span>
+            <span class="risk-owner">BE1 + Foxxum</span>
+            <span class="badge b-open">Open</span>
+          </div>
+          <div class="risk-action">Agree schema change protocol before Foxxum starts building. Additive changes + 48hr notice OK; removals require deprecation plan.</div>
+          
+        </div></div>
+  </div>
+
+</div>
+</body>
+</html>
