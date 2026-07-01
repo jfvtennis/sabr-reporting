@@ -79,6 +79,21 @@
   .completed-stamp{font-size:11px;color:var(--green-dk);font-style:italic;margin-top:6px;}
   .empty{text-align:center;padding:60px 24px;color:var(--light);font-size:15px;}
   .readonly-note{background:#FFF8E1;border:1px solid #F0D060;border-radius:6px;padding:8px 16px;font-size:12px;color:#7A5800;margin:8px 24px 0;}
+  .ops-section{background:#fff;border-bottom:1px solid var(--border);}
+  .ops-header{display:flex;justify-content:space-between;align-items:center;padding:10px 24px;cursor:pointer;font-size:13px;font-weight:700;color:var(--dark);background:#F0F8EC;border-bottom:1px solid #D4ECC8;user-select:none;}
+  .ops-header:hover{background:#E4F4DC;}
+  .ops-toggle{font-size:12px;color:var(--green-dk);}
+  .ops-body{padding:16px 24px;display:none;}
+  .ops-cols{display:flex;gap:24px;flex-wrap:wrap;}
+  .ops-col{flex:1;min-width:300px;}
+  .ops-col-title{font-size:12px;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+  .ops-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .ops-table th{background:#F5F5F5;color:var(--mid);font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:6px 10px;text-align:left;border:1px solid var(--border);}
+  .ops-table td{padding:7px 10px;border:1px solid var(--border);vertical-align:top;line-height:1.45;color:var(--dark);}
+  .ops-table tr:nth-child(even) td{background:#FAFAFA;}
+  .ops-table code{background:#EEF2FF;color:#3730A3;padding:1px 5px;border-radius:3px;font-size:11px;white-space:nowrap;}
+  .nowrap{white-space:nowrap;font-weight:600;}
+  .ops-note{font-size:11px;color:var(--light);margin-top:8px;font-style:italic;}
   @media(max-width:600px){.stats-bar{gap:8px;padding:12px 16px;}.task-list{padding:12px 16px;}.toolbar{padding:8px 16px;}}
 </style>
 </head>
@@ -90,12 +105,52 @@
       <div class="person">Niquita</div>
       <div class="role">VP</div>
     </div>
-    <div class="last-sync">Last synced: 2026-07-01 16:17</div>
+    <div class="last-sync">Last synced: 2026-07-01 16:24</div>
   </div>
 </div>
 <div class="readonly-note" id="readonlyNote">
-  📖 Read-only view — tasks reflect the last refresh on 2026-07-01 16:17.
+  📖 Read-only view — tasks reflect the last refresh on 2026-07-01 16:24.
   To mark tasks complete or add notes, open <a href="http://localhost:8765/dashboard/niquita" target="_blank">the local dashboard</a> (requires the server running on your machine).
+</div>
+<div class="ops-section">
+  <div class="ops-header" onclick="document.getElementById('opsBody').style.display=document.getElementById('opsBody').style.display==='none'?'block':'none';this.querySelector('.ops-toggle').textContent=document.getElementById('opsBody').style.display==='none'?'▼ Show':'▲ Hide'">
+    <span>⚙️ Automation Schedule &amp; Manual Commands</span>
+    <span class="ops-toggle">▼ Show</span>
+  </div>
+  <div class="ops-body" id="opsBody">
+    <div class="ops-cols">
+      <div class="ops-col">
+        <div class="ops-col-title">🕐 Automated Schedule</div>
+        <table class="ops-table">
+          <thead><tr><th>When</th><th>What runs</th><th>Updates</th></tr></thead>
+          <tbody>
+            <tr><td class="nowrap">Mon–Fri · 2:00 AM</td><td><code>refresh.command</code></td><td>AI summaries → extract_tasks → Confluence → CPR PowerPoint → GitHub Pages → execution tracker HTML → weekly snapshot</td></tr>
+            <tr><td class="nowrap">Saturday · 11:00 PM</td><td><code>sabr-weekly-snapshot</code></td><td>Weekly charter snapshot Word doc</td></tr>
+            <tr><td class="nowrap">Saturday · 11:30 PM</td><td><code>sabr-saturday-clear</code></td><td>Clears Accomplishments, Dependencies &amp; Risks in all 18 charter .docx files — resets for the new week</td></tr>
+          </tbody>
+        </table>
+        <div class="ops-note">Tasks run while the Claude app is open. If closed, they run on next launch.</div>
+      </div>
+      <div class="ops-col">
+        <div class="ops-col-title">🖥 Manual Commands</div>
+        <table class="ops-table">
+          <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>double-click refresh.command</code></td><td>Full refresh — runs everything below in sequence</td></tr>
+            <tr><td><code>python3 generate_all_summaries.py</code></td><td>Regenerates AI weekly summaries for all charters with meeting notes</td></tr>
+            <tr><td><code>python3 extract_tasks.py</code></td><td>Parses all charters → updates Confluence + dashboard HTML</td></tr>
+            <tr><td><code>python3 update_change_log.py</code></td><td>Appends an entry to the project change log</td></tr>
+            <tr><td><code>node generate_cpr_pptx.js</code></td><td>Builds the 3-slide CPR PowerPoint from SABR_Execution_Tracker.xlsx</td></tr>
+            <tr><td><code>python3 generate_tracker.py</code></td><td>Rebuilds execution_tracker.html from the Excel tracker</td></tr>
+            <tr><td><code>python3 clear_weekly_status.py</code></td><td>Clears weekly status cells in all 18 charters (auto-runs Saturday 11:30 PM)</td></tr>
+            <tr><td><code>python3 process_transcript.py &lt;file&gt;</code></td><td>Processes a meeting transcript and writes notes + AI summary into the charter</td></tr>
+            <tr><td><code>double-click dashboard.command</code></td><td>Starts local dashboard server at localhost:8765</td></tr>
+          </tbody>
+        </table>
+        <div class="ops-note">All commands run from: <code>Tennis_Channel_Streaming/</code></div>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="stats-bar">
   <div class="stat"><div class="num" id="statTotal">—</div><div class="lbl">Total</div></div>
