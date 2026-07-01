@@ -20,6 +20,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
 .count-pill { font-size: 11px; font-weight: 400; color: #6B7280; background: #F3F4F6; padding: 1px 8px; border-radius: 99px; }
 .update-hint { font-size: 11px; color: #9CA3AF; margin-left: auto; }
 .gate-list, .vendor-list, .risk-list { display: flex; flex-direction: column; gap: 5px; }
+.gate-group-head { font-size: 12px; font-weight: 600; color: #0F6E56; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 6px; padding: 5px 10px; margin-top: 10px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
 .gate-row { background: #fff; border: 1px solid #E5E7EB; border-radius: 7px; padding: 9px 12px; display: flex; align-items: flex-start; gap: 10px; }
 .gate-date { font-size: 11px; font-weight: 700; color: #374151; min-width: 52px; padding-top: 1px; }
 .gate-desc { flex: 1; font-size: 13px; color: #374151; }
@@ -76,16 +77,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
 <div class="container">
 
   <div class="summary-bar">
-    <div class="stat-card"><div class="lbl">Gates complete</div><div class="val">2 / 15</div></div>
+    <div class="stat-card"><div class="lbl">Gates complete</div><div class="val">2 / 16</div></div>
     <div class="stat-card"><div class="lbl">Vendors contracted</div><div class="val">3 / 8</div></div>
     <div class="stat-card"><div class="lbl">Risks active</div><div class="val">5 / 5</div></div>
     <div class="stat-card"><div class="lbl">Engineers on track</div><div class="val">8 / 10</div></div>
   </div>
 
   <div class="section">
-    <div class="section-head">Critical gates <span class="count-pill">2 / 15 done</span>
+    <div class="section-head">Critical gates <span class="count-pill">2 / 16 done</span>
       <span class="update-hint">Edit in Gates tab → run generate_tracker.py</span></div>
-    <div class="gate-list">
+    <div class="gate-list"><div class="gate-group-head">🤝 Vendor / Contract <span class="count-pill">0/5 done</span></div>
+
         <div class="gate-row">
           <span class="gate-date">NOW</span>
           <span class="gate-desc">Bitmovin contract initiated — legal + procurement start now. 3–4 week cycle.</span>
@@ -101,11 +103,26 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
         </div>
 
         <div class="gate-row">
-          <span class="gate-date">NOW</span>
-          <span class="gate-desc">BE1 contacts MVPD providers — Comcast, DirecTV, Dish, Cox Adobe Pass programs.</span>
-          <span class="gate-owner">BE1</span>
+          <span class="gate-date">Jun 30</span>
+          <span class="gate-desc">Bitmovin contract signed — player integration gate for MOB1, MOB2, WEB1.</span>
+          <span class="gate-owner">VP Eng + Legal</span>
           <span class="badge b-in-progress">In Progress</span>
         </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Jul 15</span>
+          <span class="gate-desc">Amagi non-DRM streams live · TV QR code protocol kickoff (BE2/WEB1/Foxxum).</span>
+          <span class="gate-owner">Amagi · BE2/WEB1</span>
+          <span class="badge b-in-progress">In Progress</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Aug 15</span>
+          <span class="gate-desc">Amagi DRM streams live · FairPlay (MOB1) + Widevine (MOB2) certification begins.</span>
+          <span class="gate-owner">Amagi · MOB1/MOB2</span>
+          <span class="badge b-in-progress">In Progress</span>
+        </div>
+<div class="gate-group-head">⚙️ Platform Enablement <span class="count-pill">2/4 done</span></div>
 
         <div class="gate-row">
           <span class="gate-date">Jun 8</span>
@@ -123,13 +140,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
 
         <div class="gate-row">
           <span class="gate-date">Jun 30</span>
-          <span class="gate-desc">Bitmovin contract signed — player integration gate for MOB1, MOB2, WEB1.</span>
-          <span class="gate-owner">VP Eng + Legal</span>
-          <span class="badge b-in-progress">In Progress</span>
-        </div>
-
-        <div class="gate-row">
-          <span class="gate-date">Jun 30</span>
           <span class="gate-desc">Core carousel APIs live in ACE — unblocks all 5 teams simultaneously.</span>
           <span class="gate-owner">BE1</span>
           <span class="badge b-in-progress">In Progress</span>
@@ -141,18 +151,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
           <span class="gate-owner">Multiple</span>
           <span class="badge b-not-started">Not Started</span>
         </div>
+<div class="gate-group-head">🔐 Auth / Distribution <span class="count-pill">0/3 done</span></div>
 
         <div class="gate-row">
-          <span class="gate-date">Jul 15</span>
-          <span class="gate-desc">Amagi non-DRM streams live · TV QR code protocol kickoff (BE2/WEB1/Foxxum).</span>
-          <span class="gate-owner">Amagi · BE2/WEB1</span>
-          <span class="badge b-in-progress">In Progress</span>
-        </div>
-
-        <div class="gate-row">
-          <span class="gate-date">Aug 15</span>
-          <span class="gate-desc">Amagi DRM streams live · FairPlay (MOB1) + Widevine (MOB2) certification begins.</span>
-          <span class="gate-owner">Amagi · MOB1/MOB2</span>
+          <span class="gate-date">NOW</span>
+          <span class="gate-desc">BE1 contacts MVPD providers — Comcast, DirecTV, Dish, Cox Adobe Pass programs.</span>
+          <span class="gate-owner">BE1</span>
           <span class="badge b-in-progress">In Progress</span>
         </div>
 
@@ -161,6 +165,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
           <span class="gate-desc">Adobe Pass MVPD complete — all 4 providers certified (Comcast, DirecTV, Dish, Cox).</span>
           <span class="gate-owner">BE1 + BE3 + C1</span>
           <span class="badge b-in-progress">In Progress</span>
+        </div>
+
+        <div class="gate-row">
+          <span class="gate-date">Nov 7</span>
+          <span class="gate-desc">App Store + Play Store submitted · Foxxum submitted to TV platforms.</span>
+          <span class="gate-owner">MOB1/2 + Foxxum</span>
+          <span class="badge b-not-started">Not Started</span>
+        </div>
+<div class="gate-group-head">🚀 Launch Milestones <span class="count-pill">0/4 done</span></div>
+
+        <div class="gate-row">
+          <span class="gate-date">Sep 15</span>
+          <span class="gate-desc">Platforms POC — all 4 surfaces (web, iOS, Android, TV) end-to-end smoke test.</span>
+          <span class="gate-owner">Full team</span>
+          <span class="badge b-not-started">Not Started</span>
         </div>
 
         <div class="gate-row">
@@ -174,13 +193,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
           <span class="gate-date">Oct 31</span>
           <span class="gate-desc">Staging freeze begins · full platform regression by C1.</span>
           <span class="gate-owner">C1 + Full team</span>
-          <span class="badge b-not-started">Not Started</span>
-        </div>
-
-        <div class="gate-row">
-          <span class="gate-date">Nov 7</span>
-          <span class="gate-desc">App Store + Play Store submitted · Foxxum submitted to TV platforms.</span>
-          <span class="gate-owner">MOB1/2 + Foxxum</span>
           <span class="badge b-not-started">Not Started</span>
         </div>
 
