@@ -61,6 +61,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
 .b-action-taken  { background: #DBEAFE; color: #1E40AF; }
 .b-monitoring    { background: #FEF3C7; color: #92400E; }
 .b-mitigated     { background: #D1FAE5; color: #065F46; }
+.b-accepted      { background: #E0E7FF; color: #3730A3; }
 </style>
 </head>
 <body>
@@ -69,15 +70,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
     <div style="font-size:11px;opacity:0.7;margin-bottom:2px;">Tennis Channel · Platform Relaunch</div>
     <h1>Execution Tracker</h1>
   </div>
-  <div class="meta">Launch: December 1, 2026 &nbsp;·&nbsp; Generated June 30, 2026<br>Update statuses in SABR_Execution_Tracker.xlsx, then run generate_tracker.py</div>
+  <div class="meta">Launch: December 1, 2026 &nbsp;·&nbsp; Generated July 01, 2026<br>Update statuses in SABR_Execution_Tracker.xlsx, then run generate_tracker.py</div>
 </div>
 
 <div class="container">
 
   <div class="summary-bar">
     <div class="stat-card"><div class="lbl">Gates complete</div><div class="val">2 / 15</div></div>
-    <div class="stat-card"><div class="lbl">Vendors contracted</div><div class="val">4 / 7</div></div>
-    <div class="stat-card"><div class="lbl">Risks active</div><div class="val">3 / 5</div></div>
+    <div class="stat-card"><div class="lbl">Vendors contracted</div><div class="val">3 / 8</div></div>
+    <div class="stat-card"><div class="lbl">Risks active</div><div class="val">5 / 5</div></div>
     <div class="stat-card"><div class="lbl">Engineers on track</div><div class="val">8 / 10</div></div>
   </div>
 
@@ -145,21 +146,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
           <span class="gate-date">Jul 15</span>
           <span class="gate-desc">Amagi non-DRM streams live · TV QR code protocol kickoff (BE2/WEB1/Foxxum).</span>
           <span class="gate-owner">Amagi · BE2/WEB1</span>
-          <span class="badge b-not-started">Not Started</span>
+          <span class="badge b-in-progress">In Progress</span>
         </div>
 
         <div class="gate-row">
           <span class="gate-date">Aug 15</span>
           <span class="gate-desc">Amagi DRM streams live · FairPlay (MOB1) + Widevine (MOB2) certification begins.</span>
           <span class="gate-owner">Amagi · MOB1/MOB2</span>
-          <span class="badge b-not-started">Not Started</span>
+          <span class="badge b-in-progress">In Progress</span>
         </div>
 
         <div class="gate-row">
           <span class="gate-date">Sep 1</span>
           <span class="gate-desc">Adobe Pass MVPD complete — all 4 providers certified (Comcast, DirecTV, Dish, Cox).</span>
           <span class="gate-owner">BE1 + BE3 + C1</span>
-          <span class="badge b-not-started">Not Started</span>
+          <span class="badge b-in-progress">In Progress</span>
         </div>
 
         <div class="gate-row">
@@ -267,14 +268,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
   </div>
 
   <div class="section">
-    <div class="section-head">Vendor status <span class="count-pill">4 / 7 contracted</span>
+    <div class="section-head">Vendor status <span class="count-pill">3 / 8 contracted</span>
       <span class="update-hint">Edit in Vendors tab → run generate_tracker.py</span></div>
     <div class="vendor-list">
         <div class="vendor-row">
           <span class="vendor-name">Bitmovin <span class="crit-badge">critical</span></span>
           <span class="vendor-needed">Contract by Jun 30</span>
           <span class="vendor-note">MOB1/2/WEB1 blocked on player integration without this. Initiate legal this week.</span>
-          <span class="badge b-not-contracted">Not Contracted</span>
+          <span class="badge b-in-progress">In Progress</span>
         </div>
 
         <div class="vendor-row">
@@ -288,7 +289,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
           <span class="vendor-name">Amagi — DRM <span class="crit-badge">critical</span></span>
           <span class="vendor-needed">Streams by Aug 15</span>
           <span class="vendor-note">Written commitment required. If Amagi slips past Aug 15, Dec 1 is at risk.</span>
-          <span class="badge b-not-contracted">Not Contracted</span>
+          <span class="badge b-in-negotiation">In Negotiation</span>
         </div>
 
         <div class="vendor-row">
@@ -313,15 +314,22 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
         </div>
 
         <div class="vendor-row">
-          <span class="vendor-name">Gracenote</span>
-          <span class="vendor-needed">Build Jul / Done Aug</span>
-          <span class="vendor-note">Contracted ✓. BE3 owns EPG ingestion Jul 1. Coordinate stream URL mapping with Amagi.</span>
-          <span class="badge b-contracted">Contracted ✓</span>
+          <span class="vendor-name">Redline</span>
+          <span class="vendor-needed">Contract review</span>
+          <span class="vendor-note"></span>
+          <span class="badge b-not-contracted">Not Contracted</span>
+        </div>
+
+        <div class="vendor-row">
+          <span class="vendor-name">Contract-Hub</span>
+          <span class="vendor-needed">Contract review</span>
+          <span class="vendor-note"></span>
+          <span class="badge b-not-contracted">Not Contracted</span>
         </div></div>
   </div>
 
   <div class="section">
-    <div class="section-head">Risk register <span class="count-pill">3 active</span>
+    <div class="section-head">Risk register <span class="count-pill">5 active</span>
       <span class="update-hint">Edit in Risks tab → run generate_tracker.py</span></div>
     <div class="risk-list">
         <div class="risk-row">
@@ -340,7 +348,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
             <span class="risk-num">6.2</span>
             <span class="risk-title">TV QR code login flow — 4-surface protocol</span>
             <span class="risk-owner">BE2 + WEB1 + Foxxum</span>
-            <span class="badge b-not-started">Not Started</span>
+            <span class="badge b-open">Open</span>
           </div>
           <div class="risk-action">BE2, WEB1, Foxxum kickoff in week of Jul 1. Align on protocol BEFORE anyone builds.</div>
           
@@ -351,7 +359,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
             <span class="risk-num">6.3</span>
             <span class="risk-title">DRM certification — FairPlay vs Widevine</span>
             <span class="risk-owner">MOB1 / MOB2 / C1</span>
-            <span class="badge b-not-started">Not Started</span>
+            <span class="badge b-open">Open</span>
           </div>
           <div class="risk-action">Amagi DRM must be live Aug 15. Allow 4–5 weeks. FairPlay (iOS) and Widevine (Android) are separate certifications.</div>
           
