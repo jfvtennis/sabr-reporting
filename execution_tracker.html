@@ -63,6 +63,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
 .b-monitoring    { background: #FEF3C7; color: #92400E; }
 .b-mitigated     { background: #D1FAE5; color: #065F46; }
 .b-accepted      { background: #E0E7FF; color: #3730A3; }
+.b-redline       { background: #FFE4E6; color: #9F1239; }
+.b-contract-hub  { background: #FEF9C3; color: #854D0E; }
 </style>
 </head>
 <body>
@@ -78,8 +80,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
 
   <div class="summary-bar">
     <div class="stat-card"><div class="lbl">Gates complete</div><div class="val">2 / 16</div></div>
-    <div class="stat-card"><div class="lbl">Vendors contracted</div><div class="val">3 / 8</div></div>
-    <div class="stat-card"><div class="lbl">Risks active</div><div class="val">5 / 5</div></div>
+    <div class="stat-card"><div class="lbl">Vendors contracted</div><div class="val">3 / 6</div></div>
+    <div class="stat-card"><div class="lbl">Risks active</div><div class="val">1 / 5</div></div>
     <div class="stat-card"><div class="lbl">Engineers on track</div><div class="val">8 / 10</div></div>
   </div>
 
@@ -280,7 +282,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
   </div>
 
   <div class="section">
-    <div class="section-head">Vendor status <span class="count-pill">3 / 8 contracted</span>
+    <div class="section-head">Vendor status <span class="count-pill">3 / 6 contracted</span>
       <span class="update-hint">Edit in Vendors tab → run generate_tracker.py</span></div>
     <div class="vendor-list">
         <div class="vendor-row">
@@ -288,20 +290,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
           <span class="vendor-needed">Contract by Jun 30</span>
           <span class="vendor-note">MOB1/2/WEB1 blocked on player integration without this. Initiate legal this week.</span>
           <span class="badge b-in-progress">In Progress</span>
-        </div>
-
-        <div class="vendor-row">
-          <span class="vendor-name">Amagi — non-DRM <span class="crit-badge">critical</span></span>
-          <span class="vendor-needed">Streams by Jul 15</span>
-          <span class="vendor-note">Unblocks player integration on all surfaces. ~80% of player work before DRM.</span>
-          <span class="badge b-in-progress">In Progress</span>
-        </div>
-
-        <div class="vendor-row">
-          <span class="vendor-name">Amagi — DRM <span class="crit-badge">critical</span></span>
-          <span class="vendor-needed">Streams by Aug 15</span>
-          <span class="vendor-note">Written commitment required. If Amagi slips past Aug 15, Dec 1 is at risk.</span>
-          <span class="badge b-in-negotiation">In Negotiation</span>
         </div>
 
         <div class="vendor-row">
@@ -341,7 +329,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
   </div>
 
   <div class="section">
-    <div class="section-head">Risk register <span class="count-pill">5 active</span>
+    <div class="section-head">Risk register <span class="count-pill">1 active</span>
       <span class="update-hint">Edit in Risks tab → run generate_tracker.py</span></div>
     <div class="risk-list">
         <div class="risk-row">
@@ -349,7 +337,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
             <span class="risk-num">6.1</span>
             <span class="risk-title">Adobe Pass MVPD certification queues</span>
             <span class="risk-owner">BE1</span>
-            <span class="badge b-open">Open</span>
+            <span class="badge b-accepted">Accepted</span>
           </div>
           <div class="risk-action">Contact Comcast, DirecTV, Dish, Cox developer programs this week. Queue wait can be 2–3 weeks.</div>
           
@@ -360,7 +348,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
             <span class="risk-num">6.2</span>
             <span class="risk-title">TV QR code login flow — 4-surface protocol</span>
             <span class="risk-owner">BE2 + WEB1 + Foxxum</span>
-            <span class="badge b-open">Open</span>
+            <span class="badge b-accepted">Accepted</span>
           </div>
           <div class="risk-action">BE2, WEB1, Foxxum kickoff in week of Jul 1. Align on protocol BEFORE anyone builds.</div>
           
@@ -369,9 +357,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
         <div class="risk-row">
           <div class="risk-head">
             <span class="risk-num">6.3</span>
-            <span class="risk-title">DRM certification — FairPlay vs Widevine</span>
+            <span class="risk-title">DRM certification — FairPlay & Widevine</span>
             <span class="risk-owner">MOB1 / MOB2 / C1</span>
-            <span class="badge b-open">Open</span>
+            <span class="badge b-accepted">Accepted</span>
           </div>
           <div class="risk-action">Amagi DRM must be live Aug 15. Allow 4–5 weeks. FairPlay (iOS) and Widevine (Android) are separate certifications.</div>
           
@@ -382,7 +370,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sa
             <span class="risk-num">6.4</span>
             <span class="risk-title">Carousel APIs — first internal gate</span>
             <span class="risk-owner">BE1</span>
-            <span class="badge b-action-taken">Action Taken</span>
+            <span class="badge b-mitigated">Mitigated</span>
           </div>
           <div class="risk-action">BE1 starts carousel resolvers Jun 8, nothing else takes priority. Must be live end of June.</div>
           <div class="risk-notes">BE1 active on this from day 1</div>
