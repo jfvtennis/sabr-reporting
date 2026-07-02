@@ -3,233 +3,317 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SABR — Component Dependency Map</title>
+<title>SABR — Component Dependency Tree</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #0f1117; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; overflow: hidden; }
-#graph { width: 100vw; height: 100vh; }
-.tooltip {
-  position: absolute; background: rgba(20,22,32,0.97); color: #fff;
-  border: 1px solid #333; border-radius: 8px; padding: 10px 14px;
-  font-size: 11px; pointer-events: none; opacity: 0; transition: opacity 0.15s;
-  max-width: 260px; z-index: 10;
-}
-.tooltip strong { font-size: 13px; display: block; margin-bottom: 4px; }
-.tooltip .dep-label { color: #aaa; font-size: 10px; margin-top: 6px; }
-.tooltip .dep-list { color: #7eb8f7; font-size: 10px; line-height: 1.6; }
-.controls {
-  position: absolute; bottom: 14px; left: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
-}
-.legend {
-  position: absolute; top: 14px; right: 14px; background: rgba(20,22,32,0.92);
-  border: 1px solid #2a2a3a; border-radius: 8px; padding: 10px 14px;
-  font-size: 10px; color: #ccc;
-}
-.legend-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.legend-section { font-size: 9px; text-transform: uppercase; letter-spacing: 0.6px; color: #666; margin: 6px 0 3px; }
-.title-bar {
-  position: absolute; top: 14px; left: 14px; color: white;
-  font-size: 13px; font-weight: 700; background: rgba(20,22,32,0.85);
-  border: 1px solid #2a2a3a; border-radius: 8px; padding: 8px 14px;
-}
-.title-bar span { font-size: 10px; font-weight: 400; color: #888; display: block; margin-top: 2px; }
-.back-link {
-  position: absolute; bottom: 14px; right: 14px;
-  background: rgba(20,22,32,0.85); border: 1px solid #333; color: #888;
-  border-radius: 6px; padding: 5px 10px; font-size: 10px; text-decoration: none;
-}
-.back-link:hover { color: #ccc; border-color: #555; }
-.btn {
-  background: rgba(30,34,48,0.95); border: 1px solid #333; color: #ccc;
-  border-radius: 6px; padding: 5px 10px; font-size: 10px; cursor: pointer;
-  font-family: inherit;
-}
-.btn:hover { border-color: #555; color: white; }
-.btn.active { border-color: #4a9eff; color: #4a9eff; }
-.filter-label { font-size: 10px; color: #555; margin-right: 2px; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden;color:#ccc}
+svg{width:100vw;height:100vh}
+.tt{position:absolute;background:rgba(15,17,25,0.97);border:1px solid #2a2d45;border-radius:10px;padding:12px 15px;font-size:11px;pointer-events:none;opacity:0;transition:opacity .15s;max-width:260px;z-index:20}
+.tt h3{font-size:13px;color:#fff;margin-bottom:3px}
+.tt .cat{font-size:10px;margin-bottom:5px}
+.tt .status-row{font-weight:700;font-size:11px;margin-bottom:6px}
+.tt .dod{font-size:9px;color:#888;line-height:1.5;margin-bottom:6px;border-top:1px solid #2a2d45;padding-top:5px}
+.tt .dep-row{font-size:9px;line-height:1.7}
+.tt .risk-warn{background:rgba(255,160,0,.15);border:1px solid #ffaa00;border-radius:5px;padding:4px 7px;font-size:9px;color:#ffcc55;margin-top:5px}
+.top-bar{position:absolute;top:0;left:0;right:0;height:48px;background:rgba(13,17,23,0.95);border-bottom:1px solid #1e2235;display:flex;align-items:center;gap:0;padding:0 14px}
+.top-bar .brand{font-size:13px;font-weight:700;color:#fff;margin-right:18px;white-space:nowrap}
+.top-bar .brand span{font-size:10px;color:#888;font-weight:400;display:block}
+.stat-pill{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-right:6px;white-space:nowrap}
+.stat-pill.ns{background:#1e2235;color:#666}
+.stat-pill.ip{background:rgba(21,101,192,.25);color:#64b5f6}
+.stat-pill.bl{background:rgba(198,40,40,.25);color:#ef9a9a}
+.stat-pill.dn{background:rgba(46,125,50,.25);color:#a5d6a7}
+.stat-pill.ar{background:rgba(255,160,0,.2);color:#ffcc55}
+.readiness{margin-left:auto;display:flex;align-items:center;gap:8px}
+.readiness-bar{width:80px;height:6px;background:#1e2235;border-radius:3px;overflow:hidden}
+.readiness-fill{height:100%;background:linear-gradient(90deg,#1565c0,#26c6da);border-radius:3px}
+.readiness-label{font-size:10px;color:#888}
+.controls{position:absolute;bottom:12px;left:14px;display:flex;gap:7px;align-items:center}
+.btn{background:rgba(20,24,35,.95);border:1px solid #2a2d45;color:#888;border-radius:6px;padding:4px 9px;font-size:10px;cursor:pointer;font-family:inherit}
+.btn:hover{border-color:#555;color:#ccc}
+.btn.on{border-color:#ffaa00;color:#ffcc55}
+.legend{position:absolute;top:60px;right:12px;background:rgba(13,17,23,0.92);border:1px solid #1e2235;border-radius:8px;padding:10px 13px;font-size:9.5px}
+.lr{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.lc{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ls{font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:#555;margin:6px 0 3px}
+.level-labels{position:absolute;bottom:46px;left:0;right:0;pointer-events:none;display:flex;justify-content:space-around}
+.level-label{font-size:9px;color:#333;text-transform:uppercase;letter-spacing:.6px;text-align:center;width:80px}
+.back-link{position:absolute;bottom:12px;right:12px;background:rgba(20,24,35,.95);border:1px solid #2a2d45;color:#666;border-radius:6px;padding:4px 9px;font-size:10px;text-decoration:none}
+.back-link:hover{color:#aaa;border-color:#555}
 </style>
 </head>
 <body>
-<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">SABR Component Dependency Map — 33 streaming platform components with status and relationships</h2>
-<div class="title-bar">🎾 SABR — Component Dependency Map<span>Drag nodes · Hover for details · Scroll to zoom · Dec 1, 2026</span></div>
+<h2 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">SABR Component Dependency Tree — 33 streaming platform components with dependency levels, critical path, and at-risk status</h2>
+
+<div class="top-bar">
+  <div class="brand">🎾 SABR — Component Dependency Tree<span>Hover to explore · Drag nodes · Scroll to zoom · Dec 1, 2026</span></div>
+  <span class="stat-pill ns">20 Not Started</span>
+  <span class="stat-pill ip">13 In Progress</span>
+  <span class="stat-pill dn">0 Done</span>
+  <span class="stat-pill ar">⚠ 8 At Risk</span>
+  <div class="readiness">
+    <div class="readiness-bar"><div class="readiness-fill" style="width:39%"></div></div>
+    <span class="readiness-label">39% ready</span>
+  </div>
+</div>
+
 <div class="legend">
-  <div class="legend-section">Status</div>
-  <div class="legend-row"><div class="legend-dot" style="background:#1565c0"></div>In Progress</div>
-  <div class="legend-row"><div class="legend-dot" style="background:#3a3d50"></div>Not Started</div>
-  <div class="legend-row"><div class="legend-dot" style="background:#c62828"></div>Blocked</div>
-  <div class="legend-row"><div class="legend-dot" style="background:#2e7d32"></div>Done</div>
-  <div class="legend-section">Category</div>
-  <div class="legend-row"><div class="legend-dot" style="background:#e040fb;opacity:.8"></div>Platforms</div>
-  <div class="legend-row"><div class="legend-dot" style="background:#ff9800;opacity:.8"></div>Video Delivery</div>
-  <div class="legend-row"><div class="legend-dot" style="background:#26c6da;opacity:.8"></div>Player</div>
-  <div class="legend-row"><div class="legend-dot" style="background:#66bb6a;opacity:.8"></div>Merchandising</div>
-  <div class="legend-row"><div class="legend-dot" style="background:#ef5350;opacity:.8"></div>Onboarding</div>
+  <div class="ls">Status</div>
+  <div class="lr"><div class="lc" style="background:#1565c0"></div>In Progress</div>
+  <div class="lr"><div class="lc" style="background:#2a2d3e;border:1px solid #444"></div>Not Started</div>
+  <div class="lr"><div class="lc" style="background:#c62828"></div>Blocked</div>
+  <div class="lr"><div class="lc" style="background:#2e7d32"></div>Done</div>
+  <div class="lr"><div class="lc" style="background:#2a2d3e;border:2px solid #ffaa00"></div>At Risk</div>
+  <div class="ls">Category</div>
+  <div class="lr"><div class="lc" style="background:#e040fb;opacity:.8"></div>Platforms</div>
+  <div class="lr"><div class="lc" style="background:#ff9800;opacity:.8"></div>Video Delivery</div>
+  <div class="lr"><div class="lc" style="background:#26c6da;opacity:.8"></div>Player</div>
+  <div class="lr"><div class="lc" style="background:#66bb6a;opacity:.8"></div>Merchandising</div>
+  <div class="lr"><div class="lc" style="background:#ef5350;opacity:.8"></div>Onboarding</div>
+  <div class="ls">Node Size</div>
+  <div class="lr" style="color:#555;font-size:9px">Larger = more dependents</div>
 </div>
+
 <div class="controls">
-  <button class="btn" onclick="resetZoom()">Reset View</button>
-  <button class="btn active" id="btn-links" onclick="toggleLinks()">Show Links</button>
-  <span class="filter-label">Filter:</span>
-  <button class="btn active" id="f-platforms" onclick="toggleCat('Platforms','f-platforms')">Platforms</button>
-  <button class="btn active" id="f-video" onclick="toggleCat('Video Delivery','f-video')">Video</button>
-  <button class="btn active" id="f-player" onclick="toggleCat('Player','f-player')">Player</button>
-  <button class="btn active" id="f-merch" onclick="toggleCat('Merchandising','f-merch')">Merch</button>
-  <button class="btn active" id="f-onboard" onclick="toggleCat('Onboarding','f-onboard')">Onboarding</button>
+  <button class="btn on" id="btn-cp" onclick="toggleCriticalPath()">★ Critical Path</button>
+  <button class="btn on" id="btn-ar" onclick="toggleAtRisk()">⚠ At Risk</button>
+  <button class="btn on" id="btn-lk" onclick="toggleLinks()">Links</button>
+  <button class="btn" onclick="resetView()">Reset View</button>
 </div>
-<div class="tooltip" id="tt"></div>
-<svg id="graph"></svg>
+
+<div class="level-labels">
+  <div class="level-label">Foundation</div>
+  <div class="level-label">Services</div>
+  <div class="level-label">Capabilities</div>
+  <div class="level-label">Core</div>
+  <div class="level-label">Platforms</div>
+</div>
+
+<div class="tt" id="tt"></div>
+<svg id="g"></svg>
 <a href="https://jfvtennis.github.io/sabr-reporting/execution_tracker.html" class="back-link">← Execution Tracker</a>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script>
-const CATEGORIES = {
-  'Platforms': '#e040fb',
-  'Video Delivery': '#ff9800',
-  'Player': '#26c6da',
-  'Merchandising': '#66bb6a',
-  'Onboarding': '#ef5350'
+const CAT_C={'Platforms':'#e040fb','Video Delivery':'#ff9800','Player':'#26c6da','Merchandising':'#66bb6a','Onboarding':'#ef5350'};
+const ST_C={'In Progress':'#1565c0','Not Started':'#1e2235','Blocked':'#c62828','Done':'#2e7d32'};
+
+const LEVELS={
+  'hls':0,'dash':0,'signin':0,'metadata':0,'images':0,
+  'fairplay-drm':1,'widevine-drm':1,'web-player':1,'live-streams':1,'vod-streams':1,
+  'linear':1,'subscription':1,'mvpd':1,'carousels':1,'roku':1,'firetv':1,'samsung':1,
+  'fp-support':2,'wv-support':2,'live-video':2,'vod-video':2,'jabs':2,'m15':2,
+  'highlights':2,'promos':2,'tc.com':2,'appletv':2,
+  'ios-player':3,'android-player':3,
+  'ios-app':4,'android-app':4,'hls-dash-pb':4,'qoe':4
 };
 
-const STATUS_FILL = {
-  'In Progress': '#1565c0',
-  'Not Started': '#2a2d3e',
-  'Blocked': '#c62828',
-  'Done': '#2e7d32'
-};
+const CRITICAL_PATH=new Set(['dash','widevine-drm','wv-support','android-player','android-app',
+  'hls','fairplay-drm','fp-support','ios-player','ios-app','signin','subscription']);
 
-const nodes = [
-  {id:'tc.com', label:'Tennischannel.com', cat:'Platforms', status:'In Progress', surface:'Web', dod:'Full feature parity with current site; responsive design; auth flow complete; playback functional'},
-  {id:'ios-app', label:'iOS App', cat:'Platforms', status:'In Progress', surface:'iOS', dod:'App Store approved; auth/subscription flow; HLS+FairPlay playback; Bitmovin integrated; QA passed'},
-  {id:'android-app', label:'Android App', cat:'Platforms', status:'Not Started', surface:'Android', dod:'Play Store approved; auth/subscription flow; DASH+Widevine playback; Bitmovin integrated; QA passed'},
-  {id:'roku', label:'Roku', cat:'Platforms', status:'In Progress', surface:'Roku', dod:'Certified & published on Roku Channel Store; playback functional; auth flow complete'},
-  {id:'firetv', label:'Fire TV', cat:'Platforms', status:'Not Started', surface:'Fire TV', dod:'Certified & published on Amazon Appstore; playback functional; auth flow complete'},
-  {id:'appletv', label:'Apple TV', cat:'Platforms', status:'Not Started', surface:'Apple TV', dod:'Certified & published on tvOS App Store; playback functional; auth flow complete'},
-  {id:'samsung', label:'Samsung', cat:'Platforms', status:'Not Started', surface:'Samsung TV', dod:'Certified & published on Samsung Smart TV store; playback functional; auth flow complete'},
-  {id:'hls', label:'HLS', cat:'Video Delivery', status:'In Progress', surface:'All', dod:'HLS streams from Amagi CDN; tested across web/iOS/TV; bitrate ladder defined'},
-  {id:'dash', label:'MPEG-DASH', cat:'Video Delivery', status:'Not Started', surface:'All', dod:'DASH streams delivered; tested on Android and web; segments validated'},
-  {id:'live-streams', label:'Live Streams', cat:'Video Delivery', status:'Not Started', surface:'All', dod:'All live feeds ingest → encode → CDN → player; latency within SLA; failover tested'},
-  {id:'vod-streams', label:'VOD Streams', cat:'Video Delivery', status:'Not Started', surface:'All', dod:'VOD content available within SLA after live event end; metadata attached; playback functional'},
-  {id:'linear', label:'Linear', cat:'Video Delivery', status:'Not Started', surface:'All', dod:'24/7 linear feed live on all surfaces; EPG data synced; no gaps in schedule'},
-  {id:'fairplay-drm', label:'FairPlay DRM', cat:'Video Delivery', status:'In Progress', surface:'iOS', dod:'FairPlay license server configured; key rotation tested; iOS playback of protected content verified'},
-  {id:'widevine-drm', label:'Widevine DRM', cat:'Video Delivery', status:'Not Started', surface:'Android', dod:'Widevine L1/L3 license server configured; Android playback of protected content verified'},
-  {id:'web-player', label:'Web Player', cat:'Player', status:'In Progress', surface:'Web', dod:'Bitmovin SDK integrated; HLS+DASH playback functional; UI controls complete; analytics events firing'},
-  {id:'ios-player', label:'iOS Player', cat:'Player', status:'In Progress', surface:'iOS', dod:'Bitmovin iOS SDK integrated; HLS+FairPlay playback functional; analytics events firing'},
-  {id:'android-player', label:'Android Player', cat:'Player', status:'Not Started', surface:'Android', dod:'Bitmovin Android SDK integrated; DASH+Widevine playback functional; analytics events firing'},
-  {id:'hls-dash-pb', label:'HLS/DASH Playback', cat:'Player', status:'Not Started', surface:'All', dod:'Adaptive bitrate switching tested; buffer management validated; seek/scrub functional'},
-  {id:'fp-support', label:'FairPlay Support', cat:'Player', status:'In Progress', surface:'iOS', dod:'FairPlay license acquisition tested end-to-end; offline playback (if applicable) validated'},
-  {id:'wv-support', label:'Widevine Support', cat:'Player', status:'In Progress', surface:'Android', dod:'Widevine L1/L3 tested; license caching verified; no playback failures on protected content'},
-  {id:'qoe', label:'Bitmovin QOE', cat:'Player', status:'Not Started', surface:'All', dod:'QOE metrics flowing to Bitmovin dashboard; S3 export configured; Snowflake ingestion verified'},
-  {id:'metadata', label:'Metadata', cat:'Merchandising', status:'In Progress', surface:'All', dod:'All content types have required metadata fields populated; schema validated; search indexed'},
-  {id:'carousels', label:'Carousels', cat:'Merchandising', status:'In Progress', surface:'All', dod:'Carousel APIs live in ACE; editorial CMS can publish/reorder; all surfaces render correctly'},
-  {id:'images', label:'Images', cat:'Merchandising', status:'Not Started', surface:'All', dod:'Image CDN configured; all required resolutions/aspect ratios defined; lazy loading functional'},
-  {id:'live-video', label:'Live Video (CMS)', cat:'Merchandising', status:'In Progress', surface:'All', dod:'Live event tiles surface in correct carousels; real-time metadata updates working'},
-  {id:'vod-video', label:'VOD Video (CMS)', cat:'Merchandising', status:'Not Started', surface:'All', dod:'VOD assets indexed and surfaced in browse/search; thumbnail and metadata correct'},
-  {id:'jabs', label:'JABs', cat:'Merchandising', status:'Not Started', surface:'All', dod:'JAB clips ingested; appear in correct editorial placements; playback functional'},
-  {id:'m15', label:'M15', cat:'Merchandising', status:'Not Started', surface:'All', dod:'M15 match highlights ingested; metadata complete; appear within SLA of match end'},
-  {id:'highlights', label:'Highlights', cat:'Merchandising', status:'Not Started', surface:'All', dod:'Highlight clips published; CMS editorial workflow functional; all surfaces display correctly'},
-  {id:'signin', label:'Sign-in (Entitled)', cat:'Onboarding', status:'Not Started', surface:'All', dod:'Entitled users can sign in via email/social; entitlement check passes; user lands on correct content'},
-  {id:'subscription', label:'Subscription', cat:'Onboarding', status:'Not Started', surface:'All', dod:'Unentitled users can complete subscription flow via Cleeng; payment processed; entitlement granted'},
-  {id:'mvpd', label:'MVPD Sign-in', cat:'Onboarding', status:'In Progress', surface:'All', dod:'Adobe Pass V2 integration live; supported MVPDs listed; QR code/redirect flow functional on all surfaces'},
-  {id:'promos', label:'Promos', cat:'Onboarding', status:'Not Started', surface:'All', dod:'Promo codes functional in Cleeng; discount applied correctly; tracking/attribution in place'},
+const nodes=[
+  {id:'hls',label:'HLS',cat:'Video Delivery',status:'In Progress',surface:'All',dod:'HLS streams from Amagi CDN; tested across web/iOS/TV; bitrate ladder defined'},
+  {id:'dash',label:'MPEG-DASH',cat:'Video Delivery',status:'Not Started',surface:'All',dod:'DASH streams delivered; tested on Android and web; segments validated'},
+  {id:'signin',label:'Sign-in (Entitled)',cat:'Onboarding',status:'Not Started',surface:'All',dod:'Entitled users can sign in; entitlement check passes; correct content served'},
+  {id:'metadata',label:'Metadata',cat:'Merchandising',status:'In Progress',surface:'All',dod:'All content types have metadata fields; schema validated; search indexed'},
+  {id:'images',label:'Images',cat:'Merchandising',status:'Not Started',surface:'All',dod:'Image CDN configured; all required resolutions defined; lazy loading functional'},
+  {id:'fairplay-drm',label:'FairPlay DRM',cat:'Video Delivery',status:'In Progress',surface:'iOS',dod:'FairPlay license server configured; key rotation tested; iOS playback verified'},
+  {id:'widevine-drm',label:'Widevine DRM',cat:'Video Delivery',status:'Not Started',surface:'Android',dod:'Widevine L1/L3 license server configured; Android playback verified'},
+  {id:'web-player',label:'Web Player',cat:'Player',status:'In Progress',surface:'Web',dod:'Bitmovin SDK integrated; HLS+DASH playback; UI controls; analytics firing'},
+  {id:'live-streams',label:'Live Streams',cat:'Video Delivery',status:'Not Started',surface:'All',dod:'All live feeds ingest→encode→CDN→player; latency within SLA; failover tested'},
+  {id:'vod-streams',label:'VOD Streams',cat:'Video Delivery',status:'Not Started',surface:'All',dod:'VOD content available within SLA after live event end; metadata attached'},
+  {id:'linear',label:'Linear',cat:'Video Delivery',status:'Not Started',surface:'All',dod:'24/7 linear feed live on all surfaces; EPG data synced; no gaps in schedule'},
+  {id:'subscription',label:'Subscription',cat:'Onboarding',status:'Not Started',surface:'All',dod:'Unentitled users complete subscription flow via Cleeng; payment processed; entitlement granted'},
+  {id:'mvpd',label:'MVPD Sign-in',cat:'Onboarding',status:'In Progress',surface:'All',dod:'Adobe Pass V2 live; supported MVPDs listed; QR code/redirect flow functional on all surfaces'},
+  {id:'carousels',label:'Carousels',cat:'Merchandising',status:'In Progress',surface:'All',dod:'Carousel APIs live in ACE; editorial CMS can publish/reorder; all surfaces render correctly'},
+  {id:'roku',label:'Roku',cat:'Platforms',status:'In Progress',surface:'Roku',dod:'Certified & published on Roku Channel Store; playback functional; auth flow complete'},
+  {id:'firetv',label:'Fire TV',cat:'Platforms',status:'Not Started',surface:'Fire TV',dod:'Certified & published on Amazon Appstore; playback functional; auth flow complete'},
+  {id:'samsung',label:'Samsung',cat:'Platforms',status:'Not Started',surface:'Samsung TV',dod:'Certified & published on Samsung Smart TV store; playback functional; auth flow complete'},
+  {id:'fp-support',label:'FairPlay Support',cat:'Player',status:'In Progress',surface:'iOS',dod:'FairPlay license acquisition tested end-to-end; offline playback validated'},
+  {id:'wv-support',label:'Widevine Support',cat:'Player',status:'In Progress',surface:'Android',dod:'Widevine L1/L3 tested; license caching verified; no playback failures'},
+  {id:'live-video',label:'Live Video (CMS)',cat:'Merchandising',status:'In Progress',surface:'All',dod:'Live event tiles surface in correct carousels; real-time metadata updates working'},
+  {id:'vod-video',label:'VOD Video (CMS)',cat:'Merchandising',status:'Not Started',surface:'All',dod:'VOD assets indexed and surfaced in browse/search; thumbnail and metadata correct'},
+  {id:'jabs',label:'JABs',cat:'Merchandising',status:'Not Started',surface:'All',dod:'JAB clips ingested; appear in correct editorial placements; playback functional'},
+  {id:'m15',label:'M15',cat:'Merchandising',status:'Not Started',surface:'All',dod:'M15 match highlights ingested; metadata complete; appear within SLA of match end'},
+  {id:'highlights',label:'Highlights',cat:'Merchandising',status:'Not Started',surface:'All',dod:'Highlight clips published; CMS editorial workflow functional; all surfaces display correctly'},
+  {id:'promos',label:'Promos',cat:'Onboarding',status:'Not Started',surface:'All',dod:'Promo codes functional in Cleeng; discount applied correctly; tracking/attribution in place'},
+  {id:'tc.com',label:'Tennischannel.com',cat:'Platforms',status:'In Progress',surface:'Web',dod:'Full feature parity; responsive design; auth flow complete; playback functional'},
+  {id:'appletv',label:'Apple TV',cat:'Platforms',status:'Not Started',surface:'Apple TV',dod:'Certified & published on tvOS App Store; playback functional; auth flow complete'},
+  {id:'ios-player',label:'iOS Player',cat:'Player',status:'In Progress',surface:'iOS',dod:'Bitmovin iOS SDK integrated; HLS+FairPlay playback functional; analytics firing'},
+  {id:'android-player',label:'Android Player',cat:'Player',status:'Not Started',surface:'Android',dod:'Bitmovin Android SDK integrated; DASH+Widevine playback functional; analytics firing'},
+  {id:'ios-app',label:'iOS App',cat:'Platforms',status:'In Progress',surface:'iOS',dod:'App Store approved; auth/subscription flow; HLS+FairPlay; Bitmovin integrated; QA passed'},
+  {id:'android-app',label:'Android App',cat:'Platforms',status:'Not Started',surface:'Android',dod:'Play Store approved; auth/subscription flow; DASH+Widevine; Bitmovin integrated; QA passed'},
+  {id:'hls-dash-pb',label:'HLS/DASH Playback',cat:'Player',status:'Not Started',surface:'All',dod:'Adaptive bitrate switching tested; buffer management validated; seek/scrub functional'},
+  {id:'qoe',label:'Bitmovin QOE',cat:'Player',status:'Not Started',surface:'All',dod:'QOE metrics flowing to Bitmovin dashboard; S3 export configured; Snowflake ingestion verified'},
 ];
 
-const links = [
-  {source:'tc.com', target:'web-player'}, {source:'tc.com', target:'hls'},
-  {source:'tc.com', target:'signin'}, {source:'tc.com', target:'carousels'},
-  {source:'ios-app', target:'ios-player'}, {source:'ios-app', target:'fairplay-drm'},
-  {source:'ios-app', target:'signin'},
-  {source:'android-app', target:'android-player'}, {source:'android-app', target:'widevine-drm'},
-  {source:'android-app', target:'signin'},
-  {source:'roku', target:'hls'}, {source:'roku', target:'signin'},
-  {source:'firetv', target:'hls'}, {source:'firetv', target:'signin'},
-  {source:'appletv', target:'hls'}, {source:'appletv', target:'fairplay-drm'}, {source:'appletv', target:'signin'},
-  {source:'samsung', target:'hls'}, {source:'samsung', target:'signin'},
-  {source:'live-streams', target:'hls'}, {source:'live-streams', target:'dash'},
-  {source:'vod-streams', target:'hls'}, {source:'vod-streams', target:'dash'},
-  {source:'linear', target:'hls'},
-  {source:'fairplay-drm', target:'hls'}, {source:'widevine-drm', target:'dash'},
-  {source:'web-player', target:'hls'}, {source:'web-player', target:'dash'},
-  {source:'ios-player', target:'hls'}, {source:'ios-player', target:'fp-support'},
-  {source:'android-player', target:'dash'}, {source:'android-player', target:'wv-support'},
-  {source:'fp-support', target:'fairplay-drm'}, {source:'wv-support', target:'widevine-drm'},
-  {source:'hls-dash-pb', target:'web-player'}, {source:'hls-dash-pb', target:'ios-player'}, {source:'hls-dash-pb', target:'android-player'},
-  {source:'qoe', target:'web-player'}, {source:'qoe', target:'ios-player'}, {source:'qoe', target:'android-player'},
-  {source:'carousels', target:'metadata'},
-  {source:'live-video', target:'live-streams'}, {source:'live-video', target:'metadata'},
-  {source:'vod-video', target:'vod-streams'}, {source:'vod-video', target:'metadata'},
-  {source:'jabs', target:'vod-streams'}, {source:'jabs', target:'metadata'},
-  {source:'m15', target:'vod-streams'}, {source:'m15', target:'metadata'},
-  {source:'highlights', target:'vod-streams'}, {source:'highlights', target:'metadata'},
-  {source:'mvpd', target:'signin'}, {source:'subscription', target:'signin'},
-  {source:'promos', target:'subscription'},
-];
+const links=[
+  {s:'tc.com',t:'web-player'},{s:'tc.com',t:'hls'},{s:'tc.com',t:'signin'},{s:'tc.com',t:'carousels'},
+  {s:'ios-app',t:'ios-player'},{s:'ios-app',t:'fairplay-drm'},{s:'ios-app',t:'signin'},
+  {s:'android-app',t:'android-player'},{s:'android-app',t:'widevine-drm'},{s:'android-app',t:'signin'},
+  {s:'roku',t:'hls'},{s:'roku',t:'signin'},
+  {s:'firetv',t:'hls'},{s:'firetv',t:'signin'},
+  {s:'appletv',t:'hls'},{s:'appletv',t:'fairplay-drm'},{s:'appletv',t:'signin'},
+  {s:'samsung',t:'hls'},{s:'samsung',t:'signin'},
+  {s:'live-streams',t:'hls'},{s:'live-streams',t:'dash'},
+  {s:'vod-streams',t:'hls'},{s:'vod-streams',t:'dash'},
+  {s:'linear',t:'hls'},
+  {s:'fairplay-drm',t:'hls'},{s:'widevine-drm',t:'dash'},
+  {s:'web-player',t:'hls'},{s:'web-player',t:'dash'},
+  {s:'ios-player',t:'hls'},{s:'ios-player',t:'fp-support'},
+  {s:'android-player',t:'dash'},{s:'android-player',t:'wv-support'},
+  {s:'fp-support',t:'fairplay-drm'},{s:'wv-support',t:'widevine-drm'},
+  {s:'hls-dash-pb',t:'web-player'},{s:'hls-dash-pb',t:'ios-player'},{s:'hls-dash-pb',t:'android-player'},
+  {s:'qoe',t:'web-player'},{s:'qoe',t:'ios-player'},{s:'qoe',t:'android-player'},
+  {s:'carousels',t:'metadata'},
+  {s:'live-video',t:'live-streams'},{s:'live-video',t:'metadata'},
+  {s:'vod-video',t:'vod-streams'},{s:'vod-video',t:'metadata'},
+  {s:'jabs',t:'vod-streams'},{s:'jabs',t:'metadata'},
+  {s:'m15',t:'vod-streams'},{s:'m15',t:'metadata'},
+  {s:'highlights',t:'vod-streams'},{s:'highlights',t:'metadata'},
+  {s:'mvpd',t:'signin'},{s:'subscription',t:'signin'},{s:'promos',t:'subscription'},
+].map(l=>({source:l.s,target:l.t}));
 
-const hiddenCats = new Set();
-const showLinksState = { on: true };
+// Compute direct dependent counts
+const depCount={};
+nodes.forEach(n=>{depCount[n.id]=0});
+links.forEach(l=>{depCount[l.target]=(depCount[l.target]||0)+1});
 
-const W = window.innerWidth, H = window.innerHeight;
-const svg = d3.select('#graph').attr('width', W).attr('height', H);
-const g = svg.append('g');
+// At-risk detection
+const nsSet=new Set(nodes.filter(n=>n.status==='Not Started').map(n=>n.id));
+nodes.forEach(n=>{
+  const myDeps=links.filter(l=>l.source===n.id);
+  n.atRisk=n.status==='Not Started'&&myDeps.some(l=>nsSet.has(l.target));
+  n.depsNotStarted=myDeps.filter(l=>nsSet.has(l.target)).map(l=>l.target);
+  n.level=LEVELS[n.id]||0;
+  n.radius=8+Math.sqrt((depCount[n.id]||0))*3.5;
+  n.onCritPath=CRITICAL_PATH.has(n.id);
+});
 
-const zoom = d3.zoom().scaleExtent([0.25, 4]).on('zoom', e => g.attr('transform', e.transform));
+const W=window.innerWidth,H=window.innerHeight-48;
+const svg=d3.select('#g').attr('viewBox',`0 0 ${W} ${H}`).attr('width',W).attr('height',H);
+const g=svg.append('g').attr('transform',`translate(0,0)`);
+
+const zoom=d3.zoom().scaleExtent([0.25,4]).on('zoom',e=>g.attr('transform',e.transform));
 svg.call(zoom);
 
-svg.append('defs').append('marker')
-  .attr('id','arrow').attr('viewBox','0 -4 8 8').attr('refX',18).attr('refY',0)
-  .attr('markerWidth',5).attr('markerHeight',5).attr('orient','auto')
-  .append('path').attr('d','M0,-4L8,0L0,4').attr('fill','#2a2d45');
+svg.append('defs').append('marker').attr('id','arr').attr('viewBox','0 -4 8 8')
+  .attr('refX',20).attr('refY',0).attr('markerWidth',5).attr('markerHeight',5).attr('orient','auto')
+  .append('path').attr('d','M0,-4L8,0L0,4').attr('fill','#1e2235');
+svg.append('defs').append('marker').attr('id','arr-cp').attr('viewBox','0 -4 8 8')
+  .attr('refX',20).attr('refY',0).attr('markerWidth',5).attr('markerHeight',5).attr('orient','auto')
+  .append('path').attr('d','M0,-4L8,0L0,4').attr('fill','#ffaa00');
 
-const sim = d3.forceSimulation(nodes)
-  .force('link', d3.forceLink(links).id(d => d.id).distance(90).strength(0.35))
-  .force('charge', d3.forceManyBody().strength(-350))
-  .force('center', d3.forceCenter(W/2, H/2))
-  .force('collision', d3.forceCollide(28));
+const numLevels=5;
+const colW=W/numLevels;
+const catOrder=['Onboarding','Platforms','Video Delivery','Player','Merchandising'];
+const catBand=H/(catOrder.length+1);
 
-const linkEl = g.append('g').selectAll('line').data(links).enter().append('line')
-  .attr('stroke','#1e2235').attr('stroke-width',1.2).attr('marker-end','url(#arrow)');
+nodes.forEach(n=>{
+  n.x=colW*(n.level)+colW/2+(Math.random()-.5)*30;
+  n.y=catBand*(catOrder.indexOf(n.cat)+1)+(Math.random()-.5)*30;
+});
 
-const nodeEl = g.append('g').selectAll('g').data(nodes).enter().append('g')
+const sim=d3.forceSimulation(nodes)
+  .force('link',d3.forceLink(links).id(d=>d.id).distance(70).strength(0.3))
+  .force('charge',d3.forceManyBody().strength(-200))
+  .force('x',d3.forceX(d=>colW*d.level+colW/2).strength(0.5))
+  .force('y',d3.forceY(d=>catBand*(catOrder.indexOf(d.cat)+1)).strength(0.3))
+  .force('collision',d3.forceCollide(d=>d.radius+8));
+
+const cpLinkIds=new Set();
+links.forEach(l=>{
+  if(CRITICAL_PATH.has(l.source)&&CRITICAL_PATH.has(l.target))
+    cpLinkIds.add(`${l.source}-${l.target}`);
+});
+
+let showCritPath=true,showAtRisk=true,showLinks=true;
+
+const linkG=g.append('g');
+const nodeG=g.append('g');
+
+const linkEl=linkG.selectAll('line').data(links).enter().append('line')
+  .attr('stroke',l=>{const id=`${l.source.id||l.source}-${l.target.id||l.target}`;return showCritPath&&cpLinkIds.has(id)?'#ffaa00':'#1e2235'})
+  .attr('stroke-width',l=>{const id=`${l.source.id||l.source}-${l.target.id||l.target}`;return cpLinkIds.has(id)?1.8:1})
+  .attr('stroke-opacity',l=>{const id=`${l.source.id||l.source}-${l.target.id||l.target}`;return cpLinkIds.has(id)?0.7:0.4})
+  .attr('marker-end',l=>{const id=`${l.source.id||l.source}-${l.target.id||l.target}`;return cpLinkIds.has(id)?'url(#arr-cp)':'url(#arr)'});
+
+const nodeEl=nodeG.selectAll('g').data(nodes).enter().append('g')
   .attr('cursor','grab')
   .call(d3.drag()
-    .on('start',(e,d)=>{ if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
-    .on('drag',(e,d)=>{ d.fx=e.x; d.fy=e.y; })
-    .on('end',(e,d)=>{ if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; })
-  );
+    .on('start',(e,d)=>{if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y})
+    .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y})
+    .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null}));
 
-nodeEl.append('circle').attr('r',14).attr('fill','none')
-  .attr('stroke', d => CATEGORIES[d.cat]||'#555').attr('stroke-width',2.5).attr('opacity',0.75);
-nodeEl.append('circle').attr('r',10.5)
-  .attr('fill', d => STATUS_FILL[d.status]||'#333');
-nodeEl.append('text').attr('y',22).attr('text-anchor','middle').attr('font-size','8px')
-  .attr('fill','#aaa').attr('pointer-events','none')
-  .text(d => d.label.length>16 ? d.label.slice(0,15)+'…' : d.label);
+nodeEl.filter(d=>d.atRisk).append('circle')
+  .attr('class','ar-ring')
+  .attr('r',d=>d.radius+6).attr('fill','none')
+  .attr('stroke','#ffaa00').attr('stroke-width',1.5).attr('opacity',0.6);
 
-const tt = document.getElementById('tt');
-nodeEl
-  .on('mouseover',(e,d)=>{
-    const deps = links.filter(l=>(l.source.id||l.source)===d.id||(l.target.id||l.target)===d.id);
-    const incoming = deps.filter(l=>(l.target.id||l.target)===d.id).map(l=>l.source.label||l.source.id||l.source);
-    const outgoing = deps.filter(l=>(l.source.id||l.source)===d.id).map(l=>l.target.label||l.target.id||l.target);
-    const statColor = STATUS_FILL[d.status]==='#2a2d3e'?'#888':STATUS_FILL[d.status];
-    tt.innerHTML=`<strong>${d.label}</strong>
-      <div style="color:${CATEGORIES[d.cat]};font-size:9px;margin-bottom:3px">${d.cat} · ${d.surface}</div>
-      <div style="color:${statColor};font-weight:700;font-size:10px;margin-bottom:5px">${d.status}</div>
-      <div style="color:#999;font-size:9px;line-height:1.5;margin-bottom:5px"><em>Done when:</em> ${d.dod}</div>
-      ${incoming.length?`<div class="dep-label">Depends on:</div><div class="dep-list">← ${incoming.join('<br>← ')}</div>`:''}
-      ${outgoing.length?`<div class="dep-label" style="margin-top:4px">Required by:</div><div class="dep-list">→ ${outgoing.join('<br>→ ')}</div>`:''}`;
-    tt.style.opacity=1;
-    tt.style.left=(e.pageX+16)+'px'; tt.style.top=(e.pageY-12)+'px';
-    linkEl.attr('stroke',l=>(l.source.id===d.id||l.target.id===d.id)?'#4a9eff':'#1e2235')
-           .attr('stroke-width',l=>(l.source.id===d.id||l.target.id===d.id)?2:1.2)
-           .attr('opacity',l=>(l.source.id===d.id||l.target.id===d.id)?1:0.3);
-    nodeEl.attr('opacity',n=>n.id===d.id||deps.some(l=>l.source.id===n.id||l.target.id===n.id)?1:0.35);
-  })
-  .on('mousemove',e=>{ tt.style.left=(e.pageX+16)+'px'; tt.style.top=(e.pageY-12)+'px'; })
-  .on('mouseout',()=>{
-    tt.style.opacity=0;
-    linkEl.attr('stroke','#1e2235').attr('stroke-width',1.2).attr('opacity',1);
-    nodeEl.attr('opacity',1);
+nodeEl.filter(d=>d.onCritPath&&!d.atRisk).append('circle')
+  .attr('class','cp-ring')
+  .attr('r',d=>d.radius+5).attr('fill','none')
+  .attr('stroke','#ffaa00').attr('stroke-width',1)
+  .attr('stroke-dasharray','3 3').attr('opacity',0.4);
+
+nodeEl.append('circle')
+  .attr('r',d=>d.radius+1).attr('fill','none')
+  .attr('stroke',d=>CAT_C[d.cat]||'#555')
+  .attr('stroke-width',2).attr('opacity',0.65);
+
+nodeEl.append('circle')
+  .attr('r',d=>d.radius-1)
+  .attr('fill',d=>ST_C[d.status]||'#1e2235');
+
+nodeEl.append('text')
+  .attr('y',d=>d.radius+11).attr('text-anchor','middle')
+  .attr('font-size','7.5px')
+  .attr('fill',d=>d.onCritPath?'#ffcc88':'#888')
+  .attr('pointer-events','none')
+  .text(d=>d.label.length>14?d.label.slice(0,13)+'…':d.label);
+
+const tt=document.getElementById('tt');
+const nodeMap=new Map(nodes.map(n=>[n.id,n]));
+
+nodeEl.on('mouseover',(e,d)=>{
+  const myDeps=links.filter(l=>(l.source.id||l.source)===d.id);
+  const enables=links.filter(l=>(l.target.id||l.target)===d.id);
+  const stColor=ST_C[d.status]==='#1e2235'?'#888':ST_C[d.status];
+  let riskHtml='';
+  if(d.atRisk&&showAtRisk){
+    const names=d.depsNotStarted.map(id=>{const n=nodeMap.get(id);return n?n.label:id});
+    riskHtml=`<div class="risk-warn">⚠ At Risk — waiting on: ${names.join(', ')}</div>`;
+  }
+  tt.innerHTML=`<h3>${d.label}</h3>
+    <div class="cat" style="color:${CAT_C[d.cat]}">${d.cat} · ${d.surface}</div>
+    <div class="status-row" style="color:${stColor}">${d.status}${d.onCritPath?' · <span style="color:#ffcc55">★ Critical Path</span>':''}</div>
+    <div class="dod"><em>Done when:</em> ${d.dod}</div>
+    <div class="dep-row">
+      ${enables.length?`<span style="color:#aaa">Enables:</span> <span style="color:#7eb8f7">${enables.map(l=>{const n=nodeMap.get(l.source.id||l.source);return n?n.label:''}).filter(Boolean).join(', ')}</span><br>`:''}
+      ${myDeps.length?`<span style="color:#aaa">Requires:</span> ${myDeps.map(l=>{const n=nodeMap.get(l.target.id||l.target);const ok=n&&(n.status==='Done'||n.status==='In Progress');return n?`<span style="color:${ok?'#a5d6a7':'#ef9a9a'}">${n.label}</span>`:''}).filter(Boolean).join(', ')}`:''}
+    </div>
+    ${riskHtml}`;
+  tt.style.opacity=1;
+  tt.style.left=(e.pageX+16)+'px';tt.style.top=(e.pageY-12)+'px';
+  linkEl.attr('stroke',l=>{
+    const sid=l.source.id||l.source,tid=l.target.id||l.target;
+    if(sid===d.id||tid===d.id)return'#4a9eff';
+    return cpLinkIds.has(`${sid}-${tid}`)&&showCritPath?'#ffaa00':'#1e2235';
+  }).attr('stroke-opacity',l=>{
+    const sid=l.source.id||l.source,tid=l.target.id||l.target;
+    return(sid===d.id||tid===d.id)?1:0.2;
   });
+  nodeEl.attr('opacity',n=>{
+    if(n.id===d.id)return 1;
+    return links.some(l=>(l.source.id||l.source)===d.id&&(l.target.id||l.target)===n.id||(l.target.id||l.target)===d.id&&(l.source.id||l.source)===n.id)?1:0.2;
+  });
+}).on('mousemove',e=>{tt.style.left=(e.pageX+16)+'px';tt.style.top=(e.pageY-12)+'px'})
+.on('mouseout',()=>{
+  tt.style.opacity=0;
+  linkEl.attr('stroke',l=>{const id=`${l.source.id||l.source}-${l.target.id||l.target}`;return showCritPath&&cpLinkIds.has(id)?'#ffaa00':'#1e2235'})
+    .attr('stroke-opacity',l=>{const id=`${l.source.id||l.source}-${l.target.id||l.target}`;return cpLinkIds.has(id)?0.7:0.4});
+  nodeEl.attr('opacity',1);
+});
 
 sim.on('tick',()=>{
   linkEl.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
@@ -237,23 +321,24 @@ sim.on('tick',()=>{
   nodeEl.attr('transform',d=>`translate(${d.x},${d.y})`);
 });
 
-function resetZoom(){ svg.transition().duration(500).call(zoom.transform,d3.zoomIdentity.translate(0,0).scale(1)); }
-
+function toggleCriticalPath(){
+  showCritPath=!showCritPath;
+  document.getElementById('btn-cp').classList.toggle('on',showCritPath);
+  linkEl.attr('stroke',l=>{const id=`${l.source.id||l.source}-${l.target.id||l.target}`;return showCritPath&&cpLinkIds.has(id)?'#ffaa00':'#1e2235'})
+    .attr('marker-end',l=>{const id=`${l.source.id||l.source}-${l.target.id||l.target}`;return showCritPath&&cpLinkIds.has(id)?'url(#arr-cp)':'url(#arr)'});
+  nodeEl.selectAll('.cp-ring').attr('opacity',showCritPath?0.4:0);
+}
+function toggleAtRisk(){
+  showAtRisk=!showAtRisk;
+  document.getElementById('btn-ar').classList.toggle('on',showAtRisk);
+  nodeEl.selectAll('.ar-ring').attr('opacity',showAtRisk?0.6:0);
+}
 function toggleLinks(){
-  showLinksState.on=!showLinksState.on;
-  linkEl.style('display',showLinksState.on?null:'none');
-  document.getElementById('btn-links').classList.toggle('active',showLinksState.on);
+  showLinks=!showLinks;
+  document.getElementById('btn-lk').classList.toggle('on',showLinks);
+  linkEl.style('display',showLinks?null:'none');
 }
-
-function toggleCat(cat, btnId){
-  if(hiddenCats.has(cat)) hiddenCats.delete(cat); else hiddenCats.add(cat);
-  document.getElementById(btnId).classList.toggle('active',!hiddenCats.has(cat));
-  nodeEl.style('display',d=>hiddenCats.has(d.cat)?'none':null);
-  linkEl.style('display',l=>{
-    if(!showLinksState.on) return 'none';
-    return (hiddenCats.has(l.source.cat||'')||hiddenCats.has(l.target.cat||''))?'none':null;
-  });
-}
+function resetView(){svg.transition().duration(500).call(zoom.transform,d3.zoomIdentity);}
 </script>
 </body>
 </html>
