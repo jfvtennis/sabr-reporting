@@ -47,8 +47,8 @@ svg{width:100vw;height:100vh}
 
 <div class="top-bar">
   <div class="brand">🎾 SABR — Component Dependency Tree<span>Hover to explore · Drag nodes · Scroll to zoom · Dec 1, 2026</span></div>
-  <span class="stat-pill ns">7 Not Started</span>
-  <span class="stat-pill ip">7 In Progress</span>
+  <span class="stat-pill ns">6 Not Started</span>
+  <span class="stat-pill ip">8 In Progress</span>
   <span class="stat-pill dn">0 Done</span>
   <span class="stat-pill ar">⚠ 8 At Risk</span>
   <div class="readiness">
@@ -122,7 +122,7 @@ const nodes=[
   {id:'web-player',label:'Web Player',cat:'Player',status:'In Progress',surface:'Web',dod:'Bitmovin SDK integrated; HLS+DASH playback; UI controls; analytics firing'},
   {id:'live-streams',label:'Live Streams',cat:'Video Delivery',status:'Not Started',surface:'All',dod:'All live feeds ingest→encode→CDN→player; latency within SLA; failover tested'},
   {id:'vod-streams',label:'VOD Streams',cat:'Video Delivery',status:'In Progress',surface:'All',dod:'VOD content available within SLA after live event end; metadata attached'},
-  {id:'linear',label:'Linear',cat:'Video Delivery',status:'Not Started',surface:'All',dod:'24/7 linear feed live on all surfaces; EPG data synced; no gaps in schedule'},
+  {id:'linear',label:'Linear',cat:'Video Delivery',status:'In Progress',surface:'All',dod:'24/7 linear feed live on all surfaces; EPG data synced; no gaps in schedule'},
   {id:'subscription',label:'Subscription',cat:'Onboarding',status:'Not Started',surface:'All',dod:'Unentitled users complete subscription flow via Cleeng; payment processed; entitlement granted'},
   {id:'mvpd',label:'MVPD Sign-in',cat:'Onboarding',status:'In Progress',surface:'All',dod:'Adobe Pass V2 live; supported MVPDs listed; QR code/redirect flow functional on all surfaces'},
   {id:'carousels',label:'Carousels',cat:'Merchandising',status:'In Progress',surface:'All',dod:'Carousel APIs live in ACE; editorial CMS can publish/reorder; all surfaces render correctly'},
