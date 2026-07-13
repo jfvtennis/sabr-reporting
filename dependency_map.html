@@ -47,9 +47,9 @@ svg{width:100vw;height:100vh}
 
 <div class="top-bar">
   <div class="brand">🎾 SABR — Component Dependency Tree<span>Hover to explore · Drag nodes · Scroll to zoom · Dec 1, 2026</span></div>
-  <span class="stat-pill ns">7 Not Started</span>
-  <span class="stat-pill ip">9 In Progress</span>
-  <span class="stat-pill dn">0 Done</span>
+  <span class="stat-pill ns">3 Not Started</span>
+  <span class="stat-pill ip">11 In Progress</span>
+  <span class="stat-pill dn">2 Done</span>
   <span class="stat-pill ar">⚠ 8 At Risk</span>
   <div class="readiness">
     <div class="readiness-bar"><div class="readiness-fill" style="width:39%"></div></div>
@@ -128,19 +128,19 @@ const nodes=[
   {id:'carousels',label:'Carousels',cat:'Merchandising',status:'In Progress',surface:'All',dod:'Carousel APIs live in ACE; editorial CMS can publish/reorder; all surfaces render correctly'},
   {id:'roku',label:'Roku',cat:'Platforms',status:'In Progress',surface:'Roku',dod:'Certified & published on Roku Channel Store; playback functional; auth flow complete'},
   {id:'firetv',label:'Fire TV',cat:'Platforms',status:'Not Started',surface:'Fire TV',dod:'Certified & published on Amazon Appstore; playback functional; auth flow complete'},
-  {id:'samsung',label:'Samsung',cat:'Platforms',status:'Not Started',surface:'Samsung TV',dod:'Certified & published on Samsung Smart TV store; playback functional; auth flow complete'},
+  {id:'samsung',label:'Samsung',cat:'Platforms',status:'In Progress',surface:'Samsung TV',dod:'Certified & published on Samsung Smart TV store; playback functional; auth flow complete'},
   {id:'fp-support',label:'FairPlay Support',cat:'Player',status:'In Progress',surface:'iOS',dod:'FairPlay license acquisition tested end-to-end; offline playback validated'},
   {id:'wv-support',label:'Widevine Support',cat:'Player',status:'In Progress',surface:'Android',dod:'Widevine L1/L3 tested; license caching verified; no playback failures'},
   {id:'live-video',label:'Live Video (CMS)',cat:'Merchandising',status:'In Progress',surface:'All',dod:'Live event tiles surface in correct carousels; real-time metadata updates working'},
   {id:'vod-video',label:'VOD Video (CMS)',cat:'Merchandising',status:'Not Started',surface:'All',dod:'VOD assets indexed and surfaced in browse/search; thumbnail and metadata correct'},
   {id:'jabs',label:'JABs',cat:'Merchandising',status:'Not Started',surface:'All',dod:'JAB clips ingested; appear in correct editorial placements; playback functional'},
-  {id:'m15',label:'M15',cat:'Merchandising',status:'Not Started',surface:'All',dod:'M15 match highlights ingested; metadata complete; appear within SLA of match end'},
-  {id:'highlights',label:'Highlights',cat:'Merchandising',status:'Not Started',surface:'All',dod:'Highlight clips published; CMS editorial workflow functional; all surfaces display correctly'},
+  {id:'m15',label:'M15',cat:'Merchandising',status:'Done',surface:'All',dod:'M15 match highlights ingested; metadata complete; appear within SLA of match end'},
+  {id:'highlights',label:'Highlights',cat:'Merchandising',status:'Done',surface:'All',dod:'Highlight clips published; CMS editorial workflow functional; all surfaces display correctly'},
   {id:'promos',label:'Promos',cat:'Onboarding',status:'Not Started',surface:'All',dod:'Promo codes functional in Cleeng; discount applied correctly; tracking/attribution in place'},
   {id:'tc.com',label:'Tennischannel.com',cat:'Platforms',status:'In Progress',surface:'Web',dod:'Full feature parity; responsive design; auth flow complete; playback functional'},
   {id:'appletv',label:'Apple TV',cat:'Platforms',status:'Not Started',surface:'Apple TV',dod:'Certified & published on tvOS App Store; playback functional; auth flow complete'},
   {id:'ios-player',label:'iOS Player',cat:'Player',status:'In Progress',surface:'iOS',dod:'Bitmovin iOS SDK integrated; HLS+FairPlay playback functional; analytics firing'},
-  {id:'android-player',label:'Android Player',cat:'Player',status:'Not Started',surface:'Android',dod:'Bitmovin Android SDK integrated; DASH+Widevine playback functional; analytics firing'},
+  {id:'android-player',label:'Android Player',cat:'Player',status:'In Progress',surface:'Android',dod:'Bitmovin Android SDK integrated; DASH+Widevine playback functional; analytics firing'},
   {id:'ios-app',label:'iOS App',cat:'Platforms',status:'In Progress',surface:'iOS',dod:'App Store approved; auth/subscription flow; HLS+FairPlay; Bitmovin integrated; QA passed'},
   {id:'android-app',label:'Android App',cat:'Platforms',status:'Not Started',surface:'Android',dod:'Play Store approved; auth/subscription flow; DASH+Widevine; Bitmovin integrated; QA passed'},
   {id:'hls-dash-pb',label:'HLS/DASH Playback',cat:'Player',status:'Not Started',surface:'All',dod:'Adaptive bitrate switching tested; buffer management validated; seek/scrub functional'},
