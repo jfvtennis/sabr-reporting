@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SABR · TPM Task Board</title>
+<style>
+  :root{--green:#8ED973;--green-dk:#4EA72E;--dark:#1A1A1A;--mid:#555;--light:#888;
+    --border:#E0E0E0;--bg:#F5F5F5;--card:#FFFFFF;--red:#C0392B;--amber:#B07D00;--blue:#1F6FBD;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--dark);}
+  .header{background:var(--dark);color:#fff;}
+  .header-top{background:var(--green);padding:10px 24px;display:flex;align-items:center;gap:12px;}
+  .header-top h1{font-size:18px;font-weight:700;color:var(--dark);}
+  .header-meta{padding:12px 24px;display:flex;gap:24px;align-items:center;flex-wrap:wrap;}
+  .header-meta .person{font-size:20px;font-weight:700;color:#fff;}
+  .header-meta .role{font-size:12px;color:#aaa;}
+  .tpm-badge{background:var(--green);color:var(--dark);border-radius:4px;padding:2px 10px;font-size:11px;font-weight:700;margin-left:10px;vertical-align:middle;}
+  .last-sync{font-size:11px;color:#888;margin-left:auto;}
+  .stats-bar{display:flex;gap:16px;padding:16px 24px;background:var(--card);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .stat{text-align:center;min-width:90px;}
+  .stat .num{font-size:28px;font-weight:700;line-height:1;}
+  .stat .lbl{font-size:11px;color:var(--light);text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
+  .stat.total .num{color:var(--blue);}
+  .stat.week .num{color:var(--green-dk);}
+  .stat.stale .num{color:var(--amber);}
+  .stat.done .num{color:#4EA72E;}
+  .toolbar{display:flex;gap:10px;padding:12px 24px;background:var(--bg);border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;}
+  .toolbar select,.toolbar input{padding:6px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:#fff;}
+  .toolbar input{min-width:200px;flex:1;}
+  .toolbar label.hide-complete{font-size:12px;color:var(--mid);display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .count-note{font-size:12px;color:var(--light);margin-left:auto;}
+  .project-block{padding:0 24px 4px;}
+  .project-banner{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:8px;margin:18px 0 12px;}
+  .project-banner .pname{font-size:16px;font-weight:700;letter-spacing:.02em;}
+  .project-banner .pcount{background:rgba(255,255,255,.35);border-radius:10px;padding:2px 10px;font-size:11px;font-weight:700;}
+  .proj-sabr{background:#1A1A1A;color:#fff;}
+  .proj-sabr .pcount{background:var(--green);color:#1A1A1A;}
+  .proj-roku{background:#0C447C;color:#fff;}
+  .proj-roku .pcount{background:#E6F1FB;color:#0C447C;}
+  .proj-amazon{background:#7A4B00;color:#fff;}
+  .proj-amazon .pcount{background:#FAEEDA;color:#633806;}
+  .ws-heading{display:flex;align-items:center;gap:10px;padding:12px 0 8px;}
+  .ws-heading h2{font-size:16px;font-weight:700;color:var(--dark);text-transform:uppercase;letter-spacing:.02em;}
+  .ws-heading .ws-count{background:#EBEBEB;color:#555;border-radius:10px;padding:2px 9px;font-size:11px;font-weight:700;}
+  .task-list{display:flex;flex-direction:column;gap:10px;padding-bottom:8px;}
+  .task-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;}
+  .task-card.flag-overdue{border-left:3px solid var(--red);}
+  .task-card.flag-stale{border-left:3px solid var(--amber);}
+  .task-card.is-complete{background:#FAFAFA;opacity:.62;}
+  .card-title{font-size:14px;font-weight:400;color:var(--dark);line-height:1.5;margin-bottom:8px;}
+  .task-card.is-complete .card-title{text-decoration:line-through;color:var(--light);}
+  .card-meta{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+  .chip{display:inline-block;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;white-space:nowrap;}
+  .chip-owner{border-radius:4px;padding:2px 9px;font-size:11px;font-weight:700;}
+  .chip-due{background:#EEF4FF;color:#0C447C;}
+  .chip-due.this-week{background:#E8F8E8;color:var(--green-dk);}
+  .chip-due.overdue{background:#FEE8E8;color:var(--red);}
+  .chip-due.unspecified{background:#F0F0F0;color:#888;}
+  .chip-stale{background:#FFF8E1;color:var(--amber);}
+  .status-select{margin-left:auto;padding:4px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:700;background:#fff;color:var(--mid);cursor:pointer;}
+  .status-select.st-open{color:#0C447C;border-color:#B5D4F4;}
+  .status-select.st-in_progress{color:var(--amber);border-color:#F0D060;}
+  .status-select.st-blocked{color:var(--red);border-color:#F0A0A0;}
+  .status-select.st-complete{color:var(--green-dk);border-color:#B8E8A0;}
+  .empty{text-align:center;padding:60px 24px;color:var(--light);font-size:15px;}
+  .completed-divider{margin:32px 24px 0;border-top:2px solid var(--border);}
+  .completed-heading{padding:14px 24px 8px;font-size:13px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.03em;}
+  @media(max-width:600px){.stats-bar{gap:8px;padding:12px 16px;}.project-block{padding:0 16px;}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-top"><h1>TPM Task Board</h1></div>
+  <div class="header-meta">
+    <div>
+      <div class="person">Juan Valdes <span class="tpm-badge">TPM</span></div>
+      <div class="role">Open action items — by project</div>
+    </div>
+    <div class="last-sync">Week of August 3–7 update</div>
+  </div>
+</div>
+<div class="stats-bar">
+  <div class="stat total"><div class="num" id="statTotal">—</div><div class="lbl">Open items</div></div>
+  <div class="stat week"><div class="num" id="statWeek">—</div><div class="lbl">Due this week</div></div>
+  <div class="stat stale"><div class="num" id="statStale">—</div><div class="lbl">Possibly stale</div></div>
+  <div class="stat done"><div class="num" id="statDone">—</div><div class="lbl">Complete</div></div>
+</div>
+<div class="toolbar">
+  <input type="text" id="searchBox" placeholder="🔍  Search tasks, owners…" oninput="render()">
+  <select id="filterProject" onchange="render()"><option value="">All projects</option></select>
+  <select id="filterOwner" onchange="render()"><option value="">All owners</option></select>
+  <select id="filterFlag" onchange="render()">
+    <option value="">All statuses</option>
+    <option value="overdue">Overdue</option>
+    <option value="week">Due this week</option>
+    <option value="stale">Possibly stale</option>
+  </select>
+  <label class="hide-complete"><input type="checkbox" id="hideCompleted" onchange="render()"> Hide completed</label>
+  <span class="count-note" id="countNote"></span>
+</div>
+<div id="boardRoot"></div>
+<div id="completedRoot"></div>
+<script>
+const PROJECT_ORDER = ["Project SABR", "Roku Premium Channels", "Amazon Channels"];
+const PROJECT_CLASS = {"Project SABR":"proj-sabr", "Roku Premium Channels":"proj-roku", "Amazon Channels":"proj-amazon"};
+
+const TASKS = [
+  {proj:"Project SABR", ws:"Contracts & Accounts", item:"Get Foxxum DBA finalized and advance the Foxxum contract to signature.", owner:"Keff", due:"Not specified", flag:"stale"},
+  {proj:"Project SABR", ws:"Contracts & Accounts", item:"Confirm Net 30 payment language in the new SportRadar Data extension before signing (SR sending shutdown-threat emails; current contract ends August).", owner:"Keff", due:"Not specified", flag:""},
+  {proj:"Project SABR", ws:"Contracts & Accounts", item:"Get legal sign-off on storing T&C consent in Auth0 vs. Cleeng.", owner:"Legal", due:"Not specified", flag:"stale"},
+
+  {proj:"Project SABR", ws:"Engineering & Platform", item:"Wire up FairPlay DRM for the Foxxum CTV app (separate from mobile iOS DRM, already confirmed working).", owner:"Aaron / Foxxum Eng", due:"Foxxum's next sprint", flag:""},
+  {proj:"Project SABR", ws:"Engineering & Platform", item:"Get info from SportRadar on where player favorites are stored, for migration to the new backend.", owner:"Aaron", due:"Not specified", flag:""},
+  {proj:"Project SABR", ws:"Engineering & Platform", item:"Fix TestFlight build numbering conflict with SportRadar's new versioning scheme.", owner:"Yisake Tadsse", due:"Not specified", flag:""},
+  {proj:"Project SABR", ws:"Engineering & Platform", item:"Advance proxy/MVPD edge-case testing (Cablevision logout, proxy auth) — stalled as of 8/5.", owner:"Keff / Bobo", due:"Not specified", flag:""},
+  {proj:"Project SABR", ws:"Engineering & Platform", item:"Confirm Spectrum-specific error messaging surfaces via TC's GraphQL API.", owner:"Engineering", due:"Not specified", flag:"stale"},
+  {proj:"Project SABR", ws:"Engineering & Platform", item:"Finalize device-testing matrix, order test iPhones, and lock the QA plan (originally due end of July).", owner:"Aditya Pande", due:"Overdue", flag:"overdue"},
+  {proj:"Project SABR", ws:"Engineering & Platform", item:"Root-cause the EZDRM issue — intermittently works then breaks again.", owner:"Ari Brock / Amagi", due:"Not specified", flag:""},
+
+  {proj:"Project SABR", ws:"Product & Merchandising", item:"Share Niquita's H1/post-SABR design roadmap and kick off working sessions.", owner:"Niquita / Benjamin Kessler", due:"Not specified", flag:""},
+  {proj:"Project SABR", ws:"Product & Merchandising", item:"Decide on the Amplitude proposal (non-blocking, but needs a decision).", owner:"Ari Brock", due:"Not specified", flag:""},
+  {proj:"Project SABR", ws:"Product & Merchandising", item:"Kick off the \"team events\" data-modeling work (Roku wants players split out from teams).", owner:"Benjamin Kessler", due:"This week (8/7–8/8)", flag:"week"},
+  {proj:"Project SABR", ws:"Product & Merchandising", item:"Respond to Roku on the merchandising \"featured event\" flag ask.", owner:"Juan Valdes", due:"This week", flag:"week"},
+  {proj:"Project SABR", ws:"Product & Merchandising", item:"Recalibrate onboarding email timing via Cleeng/Braze real-time webhooks (23% day-0 drop-off).", owner:"Benjamin Kessler / Lauren / Keff", due:"Not specified", flag:""},
+
+  {proj:"Project SABR", ws:"Foxxum / CTV", item:"Share the full list of error codes (geo-blocking, playback) and their translations.", owner:"Foxxum dev lead", due:"Not specified", flag:""},
+  {proj:"Project SABR", ws:"Foxxum / CTV", item:"Share the agreed translation JSON file structure with Aaron for implementation.", owner:"Foxxum dev lead", due:"Not specified", flag:""},
+  {proj:"Project SABR", ws:"Foxxum / CTV", item:"Send the list of plan-selection/offer fields needed for in-app purchase implementation.", owner:"Foxxum dev lead", due:"Not specified", flag:""},
+  {proj:"Project SABR", ws:"Foxxum / CTV", item:"Check alternative analytics platforms (Amplitude/Mixpanel/PostHog) to replace unreliable Google Analytics data.", owner:"Rahul", due:"Not specified", flag:""},
+  {proj:"Project SABR", ws:"Foxxum / CTV", item:"Document current vs. desired concurrency/session-limit behavior before designing a solution.", owner:"Rahul", due:"Not specified", flag:""},
+  {proj:"Project SABR", ws:"Foxxum / CTV", item:"Provide a header-based way to bypass geo-blocking in dev/test environments.", owner:"Aaron (TC)", due:"Not specified", flag:""},
+  {proj:"Project SABR", ws:"Foxxum / CTV", item:"Advance QR-code device-type tagging for ad-attribution revenue sharing.", owner:"Foxxum Eng", due:"In progress", flag:""},
+
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Make the P0 decision on the \"featured event\" flag Roku owes back to Tennis Channel.", owner:"Roku", due:"Not specified", flag:""},
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Kick off Roku Launch Plan #1 — Publishing & Marketing (back-catalog scope, artwork, promo timeline).", owner:"Juan Valdes", due:"This week", flag:"week"},
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Kick off Roku Launch Plan #2 — Engineering (E2E test plan, cert requirements, config-push timing).", owner:"Juan Valdes / Aditya", due:"This week", flag:"week"},
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Finalize the decision to drop the DTC feed and align with Chris Gutierrez on timing before the Roku call.", owner:"Charlie / Keff", due:"This week", flag:"week"},
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Get SR Data to revert event type back to SportsEvent for the OTT feed.", owner:"Keff", due:"Tied to DTC decision", flag:""},
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Confirm SSAI enablement on Tennis 29 — blocked on a VAST tag never supplied to Amagi.", owner:"Ari Brock", due:"Outstanding since 7/31", flag:"stale"},
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Build and publish the standalone Tennis 1 XML EPG feed (currently just a copy of the T2 feed).", owner:"Amagi (Swamy)", due:"~8/8", flag:"week"},
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Confirm Roku trick-play thumbnail cert requirements and RAF compliance — hard app-store gate for Sept 8.", owner:"Dave Bornstein / Swamy", due:"This week", flag:"week"},
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Deliver the full automated VOD/highlights workflow to Roku (S3 copy, no transcoding).", owner:"Amagi", due:"8/15", flag:""},
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Coordinate the Roku channel/rights-config production push.", owner:"Aditya + Amagi", due:"Mid-August", flag:""},
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Publish the DVR/VOD architecture redesign doc and confirm the mid-August POC timeline.", owner:"Dave Bornstein (Amagi)", due:"Doc this week, POC by 8/12", flag:"week"},
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Build the VOD-start-time override (Axon UI) for replay trimming.", owner:"Amagi (Pranchal)", due:"2nd week of August", flag:""},
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Define TC's long-term VOD/replay wish list for Amagi's roadmap.", owner:"Ari Brock", due:"Not specified", flag:""},
+  {proj:"Roku Premium Channels", ws:"Roku Premium Channels", item:"Loop Ad Ops into the VOD ad-handling/fill-rate strategy discussion.", owner:"Ari Brock", due:"Not specified", flag:""},
+
+  {proj:"Amazon Channels", ws:"Amazon Channels", item:"Get subgenre metadata from Amazon's Linear team (blocking Spain LEL surfacing).", owner:"Elita", due:"Not specified", flag:"stale"},
+  {proj:"Amazon Channels", ws:"Amazon Channels", item:"Confirm VOD benefit ID with Natalie.", owner:"Elita", due:"Not specified", flag:"stale"},
+  {proj:"Amazon Channels", ws:"Amazon Channels", item:"Begin Spain test publishing in batches (~5 feeds/day, 24–48h notice to LiveOps).", owner:"Charlie", due:"~8/6", flag:"week"},
+  {proj:"Amazon Channels", ws:"Amazon Channels", item:"Forward the GraceNote→Amagi EPG thread to Elita to route (unanswered for weeks).", owner:"Ari Brock", due:"Not specified", flag:"stale"},
+  {proj:"Amazon Channels", ws:"Amazon Channels", item:"Confirm stream sampler redeployment with Deven and ask about test-period extension.", owner:"Mark Nunez", due:"Not specified", flag:"stale"},
+  {proj:"Amazon Channels", ws:"Amazon Channels", item:"Get status on the FAST channel collection page from Amazon's product lead.", owner:"Team", due:"Expected 8/11", flag:""},
+];
+
+function hashId(s){let h=0;for(let i=0;i<s.length;i++){h=(h<<5)-h+s.charCodeAt(i);h|=0;}return "t"+Math.abs(h);}
+TASKS.forEach(t=>{t.id=hashId(t.proj+"|"+t.ws+"|"+t.item);t.status="open";});
+
+let statusOverrides={};
+try{statusOverrides=JSON.parse(localStorage.getItem("tpm_task_board_status_v1")||"{}");}catch(e){statusOverrides={};}
+function getStatus(t){return statusOverrides[t.id]||t.status;}
+function setStatus(id,status){
+  statusOverrides[id]=status;
+  try{localStorage.setItem("tpm_task_board_status_v1",JSON.stringify(statusOverrides));}catch(e){}
+  render();
+}
+
+const OWNER_COLORS = {};
+const PALETTE = [
+  {bg:"#E6F1FB",fg:"#0C447C"},{bg:"#E1F5EE",fg:"#085041"},{bg:"#EEEDFE",fg:"#3C3489"},
+  {bg:"#FAECE7",fg:"#712B13"},{bg:"#FBEAF0",fg:"#72243E"},{bg:"#F1EFE8",fg:"#444441"},
+  {bg:"#FAEEDA",fg:"#633806"},{bg:"#EAF3DE",fg:"#27500A"},
+];
+function ownerColor(name){
+  const key=(name||"").split("/")[0].split("(")[0].trim();
+  if(!OWNER_COLORS[key]){
+    const idx=Object.keys(OWNER_COLORS).length%PALETTE.length;
+    OWNER_COLORS[key]=PALETTE[idx];
+  }
+  return OWNER_COLORS[key];
+}
+function escHtml(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function dueChipClass(flag){
+  if(flag==="overdue")return"overdue";
+  if(flag==="week")return"this-week";
+  return"";
+}
+const STATUS_LABELS={open:"Open",in_progress:"In Progress",blocked:"Blocked",complete:"Complete"};
+
+function statusSelectHtml(t){
+  const cur=getStatus(t);
+  const opts=Object.keys(STATUS_LABELS).map(k=>`<option value="${k}" ${k===cur?"selected":""}>${STATUS_LABELS[k]}</option>`).join("");
+  return `<select class="status-select st-${cur}" onchange="setStatus('${t.id}',this.value)">${opts}</select>`;
+}
+
+function cardHtml(t){
+  const oc=ownerColor(t.owner);
+  const cur=getStatus(t);
+  const isComplete=cur==="complete";
+  const cardFlagClass=t.flag==="overdue"?"flag-overdue":(t.flag==="stale"?"flag-stale":"");
+  return `<div class="task-card ${cardFlagClass} ${isComplete?"is-complete":""}">
+    <div class="card-title">${escHtml(t.item)}</div>
+    <div class="card-meta">
+      <span class="chip-owner" style="background:${oc.bg};color:${oc.fg};">${escHtml(t.owner)}</span>
+      <span class="chip chip-due ${dueChipClass(t.flag)} ${t.due==="Not specified"?"unspecified":""}">${escHtml(t.due)}</span>
+      ${t.flag==="stale"&&!isComplete?'<span class="chip chip-stale">⚠ Possibly stale</span>':""}
+      ${statusSelectHtml(t)}
+    </div>
+  </div>`;
+}
+
+function updateStats(activeFiltered){
+  const complete=TASKS.filter(t=>getStatus(t)==="complete");
+  const open=TASKS.filter(t=>getStatus(t)!=="complete");
+  document.getElementById("statTotal").textContent=open.length;
+  document.getElementById("statWeek").textContent=open.filter(t=>t.flag==="week").length;
+  document.getElementById("statStale").textContent=open.filter(t=>t.flag==="stale").length;
+  document.getElementById("statDone").textContent=complete.length;
+  document.getElementById("countNote").textContent=activeFiltered.length+" of "+open.length+" open shown";
+}
+function populateFilters(){
+  const pSel=document.getElementById("filterProject");
+  const oSel=document.getElementById("filterOwner");
+  PROJECT_ORDER.forEach(proj=>{
+    const o=document.createElement("option");o.value=proj;o.textContent=proj;pSel.appendChild(o);
+  });
+  [...new Set(TASKS.map(t=>t.owner))].sort().forEach(owner=>{
+    const o=document.createElement("option");o.value=owner;o.textContent=owner;oSel.appendChild(o);
+  });
+}
+function render(){
+  const search=document.getElementById("searchBox").value.toLowerCase();
+  const fProj=document.getElementById("filterProject").value;
+  const fOwner=document.getElementById("filterOwner").value;
+  const fFlag=document.getElementById("filterFlag").value;
+  const hideCompleted=document.getElementById("hideCompleted").checked;
+
+  const matches=(t)=>{
+    if(fProj&&t.proj!==fProj)return false;
+    if(fOwner&&t.owner!==fOwner)return false;
+    if(fFlag&&t.flag!==fFlag)return false;
+    if(search&&!(t.item.toLowerCase().includes(search)||t.owner.toLowerCase().includes(search)||t.ws.toLowerCase().includes(search)))return false;
+    return true;
+  };
+
+  const activeFiltered=TASKS.filter(t=>getStatus(t)!=="complete"&&matches(t));
+  const completedFiltered=TASKS.filter(t=>getStatus(t)==="complete"&&matches(t));
+
+  updateStats(activeFiltered);
+
+  const root=document.getElementById("boardRoot");
+  if(!activeFiltered.length){
+    root.innerHTML='<div class="empty">No open tasks match your filters.</div>';
+  }else{
+    root.innerHTML=PROJECT_ORDER.map(proj=>{
+      const projItems=activeFiltered.filter(t=>t.proj===proj);
+      if(!projItems.length)return"";
+      const wsNames=[...new Set(projItems.map(t=>t.ws))];
+      const singleGroup=wsNames.length===1&&wsNames[0]===proj;
+
+      const body=wsNames.map(ws=>{
+        const items=projItems.filter(t=>t.ws===ws);
+        const cards=items.map(cardHtml).join("");
+        const heading=singleGroup?"":`<div class="ws-heading"><h2>${escHtml(ws)}</h2><span class="ws-count">${items.length}</span></div>`;
+        return `${heading}<div class="task-list">${cards}</div>`;
+      }).join("");
+
+      return `<div class="project-block">
+        <div class="project-banner ${PROJECT_CLASS[proj]||''}">
+          <span class="pname">${escHtml(proj)}</span>
+          <span class="pcount">${projItems.length} open</span>
+        </div>
+        ${body}
+      </div>`;
+    }).join("");
+  }
+
+  const compRoot=document.getElementById("completedRoot");
+  if(hideCompleted||!completedFiltered.length){
+    compRoot.innerHTML="";
+  }else{
+    const cards=completedFiltered.map(cardHtml).join("");
+    compRoot.innerHTML=`<div class="completed-divider"></div>
+      <div class="completed-heading">Completed (${completedFiltered.length})</div>
+      <div class="project-block"><div class="task-list">${cards}</div></div>`;
+  }
+}
+populateFilters();
+render();
+</script>
+</body>
+</html>
